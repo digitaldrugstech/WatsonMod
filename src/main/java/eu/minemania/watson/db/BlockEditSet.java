@@ -250,13 +250,13 @@ public class BlockEditSet
         }
     }
 
-    public synchronized void drawOutlines(MatrixStack matrices)
+    public synchronized void drawOutlines()
     {
         if (Configs.Outlines.OUTLINE_SHOWN.getBooleanValue())
         {
             for (PlayereditSet editsForPlayer : playerEdits.values())
             {
-                editsForPlayer.drawOutlines(matrices);
+                editsForPlayer.drawOutlines();
             }
         }
     }

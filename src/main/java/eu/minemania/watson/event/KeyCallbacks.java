@@ -15,6 +15,7 @@ import eu.minemania.watson.db.BlockEdit;
 import eu.minemania.watson.gui.GuiConfigs;
 import eu.minemania.watson.gui.GuiMainMenu;
 import eu.minemania.watson.selection.EditSelection;
+import fi.dy.masa.malilib.config.options.ConfigOptionList;
 import fi.dy.masa.malilib.config.options.ConfigString;
 import fi.dy.masa.malilib.config.options.ConfigStringList;
 import fi.dy.masa.malilib.gui.GuiBase;
@@ -32,10 +33,12 @@ public class KeyCallbacks
         IHotkeyCallback callbackHotkeys = new KeyCallbackHotkeys(mc);
         ValueChangeStringCallback valueChangeStringCallback = new ValueChangeStringCallback();
         ValueChangeStringListCallback valueChangeStringListCallback = new ValueChangeStringListCallback();
+        ValueChangeOptionListCallback valueChangeOptionListCallback = new ValueChangeOptionListCallback();
 
         Configs.Generic.WATSON_PREFIX.setValueChangeCallback(valueChangeStringCallback);
         Configs.Lists.HIGHLIGHT.setValueChangeCallback(valueChangeStringListCallback);
         Configs.Lists.OVERRIDING_ACTIONS.setValueChangeCallback(valueChangeStringListCallback);
+        Configs.Plugin.PLUGIN.setValueChangeCallback(valueChangeOptionListCallback);
 
         Configs.Analysis.CP_BUSY.setValueChangeCallback(valueChangeStringCallback);
         Configs.Analysis.CP_DETAILS.setValueChangeCallback(valueChangeStringCallback);
@@ -238,7 +241,6 @@ public class KeyCallbacks
 
     private static class ValueChangeStringListCallback implements IValueChangeCallback<ConfigStringList>
     {
-
         public ValueChangeStringListCallback()
         {
         }
@@ -253,6 +255,22 @@ public class KeyCallbacks
             else if (config == Configs.Lists.OVERRIDING_ACTIONS)
             {
                 Actions.setActionsList(Configs.Lists.OVERRIDING_ACTIONS.getStrings());
+            }
+        }
+    }
+
+    private static class ValueChangeOptionListCallback implements IValueChangeCallback<ConfigOptionList>
+    {
+        public ValueChangeOptionListCallback()
+        {
+        }
+
+        @Override
+        public void onValueChanged(ConfigOptionList config)
+        {
+            if (config == Configs.Plugin.PLUGIN)
+            {
+                Configs.Plugin.PLUGIN.setOptionListValue(config.getOptionListValue());
             }
         }
     }

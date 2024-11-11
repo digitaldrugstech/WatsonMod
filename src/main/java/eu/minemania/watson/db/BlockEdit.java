@@ -12,7 +12,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.EntityType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -60,7 +59,7 @@ public class BlockEdit
         return this.additional;
     }
 
-    public Object drawOutline(BufferBuilder buffer, MatrixStack matrices)
+    public Object drawOutline(BufferBuilder buffer)
     {
         Block blocks = Registries.BLOCK.get(Identifier.tryParse(block.getName()));
         float lineWidth = block.getLineWidth();
@@ -71,7 +70,7 @@ public class BlockEdit
                 lineWidth = Configs.Outlines.ORE_LINEWIDTH.getIntegerValue();
             }
             RenderSystem.lineWidth(lineWidth);
-            renderBlocks(buffer, blocks, matrices);
+            renderBlocks(buffer, blocks);
         }
         else
         {
@@ -81,7 +80,7 @@ public class BlockEdit
         return null;
     }
 
-    private void renderBlocks(BufferBuilder buffer, Block blocks, MatrixStack matrices)
+    private void renderBlocks(BufferBuilder buffer, Block blocks)
     {
         Color4f color = block.getOverrideColor() != Color4f.ZERO && block.getOverrideColor() != null ? block.getOverrideColor() : block.getColor();
         if (!block.getName().equals("minecraft:grass") && !block.getName().equals("minecraft:water") &&

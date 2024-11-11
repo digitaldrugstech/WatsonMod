@@ -18,7 +18,7 @@ public class RenderHandler implements IRenderer
     }
 
     @Override
-    public void onRenderWorldLast(MatrixStack matrixStack, Matrix4f projMatrix)
+    public void onRenderWorldLast(Matrix4f matrix4f, Matrix4f projMatrix)
     {
         MinecraftClient mc = MinecraftClient.getInstance();
 

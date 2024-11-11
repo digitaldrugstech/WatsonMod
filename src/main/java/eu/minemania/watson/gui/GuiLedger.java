@@ -5,10 +5,6 @@ import eu.minemania.watson.data.DataManager;
 import eu.minemania.watson.db.LedgerInfo;
 import eu.minemania.watson.gui.GuiLedger.ButtonListenerCycleTypePacket.LedgerMode;
 import eu.minemania.watson.gui.GuiLedger.ButtonListenerRolledback.RolledbackMode;
-import eu.minemania.watson.network.ledger.PluginInspectPacketHandler;
-import eu.minemania.watson.network.ledger.PluginPurgePacketHandler;
-import eu.minemania.watson.network.ledger.PluginRollbackPacketHandler;
-import eu.minemania.watson.network.ledger.PluginSearchPacketHandler;
 import fi.dy.masa.malilib.gui.*;
 import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
@@ -20,6 +16,7 @@ import fi.dy.masa.malilib.util.StringUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -959,11 +956,11 @@ public class GuiLedger extends GuiBase
 
                 switch (ledgerInfo.getLedgerMode())
                 {
-                    case INSPECT -> new PluginInspectPacketHandler().sendPacket(x, y, z, pages, mc);
-                    case PURGE -> new PluginPurgePacketHandler().sendPacket(action, dimension, block, entityType, item, tag, range, source, timeBefore, timeAfter, mc);
-                    case ROLLBACK -> new PluginRollbackPacketHandler().sendPacket(action, dimension, block, entityType, item, tag, range, source, timeBefore, timeAfter, false, mc);
-                    case RESTORE -> new PluginRollbackPacketHandler().sendPacket(action, dimension, block, entityType, item, tag, range, source, timeBefore, timeAfter, true, mc);
-                    case SEARCH -> new PluginSearchPacketHandler().sendPacket(action, dimension, block, entityType, item, tag, range, source, timeBefore, timeAfter, pages, rolledBack, mc);
+                    case INSPECT -> DataManager.getInspectHandler().encodePayload(BlockPos.ofFloored(x, y, z), pages);
+                    case PURGE -> DataManager.getPurgeHandler().encodePayload(action, dimension, block, entityType, item, tag, range, source, timeBefore, timeAfter);
+                    case ROLLBACK -> DataManager.getRollbackHandler().encodePayload(action, dimension, block, entityType, item, tag, range, source, timeBefore, timeAfter, false);
+                    case RESTORE -> DataManager.getRollbackHandler().encodePayload(action, dimension, block, entityType, item, tag, range, source, timeBefore, timeAfter, true);
+                    case SEARCH -> DataManager.getSearchHandler().encodePayload(action, dimension, block, entityType, item, tag, range, source, timeBefore, timeAfter, pages, rolledBack);
                 }
             }
         }

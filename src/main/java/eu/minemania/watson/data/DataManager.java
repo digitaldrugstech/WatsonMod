@@ -22,9 +22,26 @@ import eu.minemania.watson.db.Filters;
 import eu.minemania.watson.db.LedgerInfo;
 import eu.minemania.watson.db.TimeStamp;
 import eu.minemania.watson.gui.GuiConfigs.ConfigGuiTab;
+import eu.minemania.watson.network.ledger.action.PluginActionPacket;
+import eu.minemania.watson.network.ledger.action.PluginActionPacketHandler;
+import eu.minemania.watson.network.ledger.handshake.PluginHandshakePacket;
+import eu.minemania.watson.network.ledger.handshake.PluginHandshakePacketHandler;
+import eu.minemania.watson.network.ledger.inspect.PluginInspectPacket;
+import eu.minemania.watson.network.ledger.inspect.PluginInspectPacketHandler;
+import eu.minemania.watson.network.ledger.purge.PluginPurgePacket;
+import eu.minemania.watson.network.ledger.purge.PluginPurgePacketHandler;
+import eu.minemania.watson.network.ledger.response.PluginResponsePacket;
+import eu.minemania.watson.network.ledger.response.PluginResponsePacketHandler;
+import eu.minemania.watson.network.ledger.rollback.PluginRollbackPacket;
+import eu.minemania.watson.network.ledger.rollback.PluginRollbackPacketHandler;
+import eu.minemania.watson.network.ledger.search.PluginSearchPacket;
+import eu.minemania.watson.network.ledger.search.PluginSearchPacketHandler;
+import eu.minemania.watson.network.watson.world.PluginWorldPacket;
+import eu.minemania.watson.network.watson.world.PluginWorldPacketHandler;
 import eu.minemania.watson.selection.EditSelection;
 import fi.dy.masa.malilib.gui.Message;
 import fi.dy.masa.malilib.gui.interfaces.IDirectoryCache;
+import fi.dy.masa.malilib.network.ClientPlayHandler;
 import fi.dy.masa.malilib.util.FileUtils;
 import fi.dy.masa.malilib.util.InfoUtils;
 import fi.dy.masa.malilib.util.JsonUtils;
@@ -56,6 +73,15 @@ public class DataManager implements IDirectoryCache
     private final EditSelection editselection = new EditSelection();
 
     protected Filters filters = new Filters();
+
+    private final static PluginActionPacketHandler<PluginActionPacket.Payload> ACTION = PluginActionPacketHandler.getInstance();
+    private final static PluginHandshakePacketHandler<PluginHandshakePacket.Payload> HANDSHAKE = PluginHandshakePacketHandler.getInstance();
+    private final static PluginInspectPacketHandler<PluginInspectPacket> INSPECT = PluginInspectPacketHandler.getInstance();
+    private final static PluginPurgePacketHandler<PluginPurgePacket> PURGE = PluginPurgePacketHandler.getInstance();
+    private final static PluginResponsePacketHandler<PluginResponsePacket.Payload> RESPONSE = PluginResponsePacketHandler.getInstance();
+    private final static PluginRollbackPacketHandler<PluginRollbackPacket> ROLLBACK = PluginRollbackPacketHandler.getInstance();
+    private final static PluginSearchPacketHandler<PluginSearchPacket> SEARCH = PluginSearchPacketHandler.getInstance();
+    private final static PluginWorldPacketHandler<PluginWorldPacket.Payload> WORLD = PluginWorldPacketHandler.getInstance();
 
     private DataManager()
     {
@@ -638,5 +664,74 @@ public class DataManager implements IDirectoryCache
     public static LedgerInfo getLedgerInfo()
     {
         return ledgerInfo;
+    }
+
+    public static void reset(boolean isLogout)
+    {
+        if (isLogout)
+        {
+            ACTION.reset(ACTION.getPayloadChannel());
+            HANDSHAKE.reset(HANDSHAKE.getPayloadChannel());
+            INSPECT.reset(INSPECT.getPayloadChannel());
+            PURGE.reset(PURGE.getPayloadChannel());
+            RESPONSE.reset(RESPONSE.getPayloadChannel());
+            ROLLBACK.reset(ROLLBACK.getPayloadChannel());
+            SEARCH.reset(SEARCH.getPayloadChannel());
+            WORLD.reset(WORLD.getPayloadChannel());
+        }
+    }
+
+    public static void onWorldPre()
+    {
+        ACTION.registerPlayReceiver(PluginActionPacket.Payload.ID, ACTION::receivePlayPayload);
+        HANDSHAKE.registerPlayReceiver(PluginHandshakePacket.Payload.ID, HANDSHAKE::receivePlayPayload);
+        RESPONSE.registerPlayReceiver(PluginResponsePacket.Payload.ID, RESPONSE::receivePlayPayload);
+        WORLD.registerPlayReceiver(PluginWorldPacket.Payload.ID, WORLD::receivePlayPayload);
+    }
+
+    public static void onWorldJoin()
+    {
+        HANDSHAKE.encodePayload(new PluginHandshakePacket(Reference.LEDGER_PROTOCOL, Reference.MOD_VERSION, Reference.MOD_ID));
+    }
+
+    public static void registerPayloads()
+    {
+        ClientPlayHandler.getInstance().registerClientPlayHandler(ACTION);
+        ClientPlayHandler.getInstance().registerClientPlayHandler(HANDSHAKE);
+        ClientPlayHandler.getInstance().registerClientPlayHandler(INSPECT);
+        ClientPlayHandler.getInstance().registerClientPlayHandler(PURGE);
+        ClientPlayHandler.getInstance().registerClientPlayHandler(RESPONSE);
+        ClientPlayHandler.getInstance().registerClientPlayHandler(ROLLBACK);
+        ClientPlayHandler.getInstance().registerClientPlayHandler(SEARCH);
+        ClientPlayHandler.getInstance().registerClientPlayHandler(WORLD);
+
+        ACTION.registerPlayPayload(PluginActionPacket.Payload.ID, PluginActionPacket.Payload.CODEC, PluginActionPacketHandler.TO_CLIENT);
+        HANDSHAKE.registerPlayPayload(PluginHandshakePacket.Payload.ID, PluginHandshakePacket.Payload.CODEC, PluginHandshakePacketHandler.BOTH_SERVER);
+        INSPECT.registerPlayPayload(PluginInspectPacket.ID, PluginInspectPacket.CODEC, PluginInspectPacketHandler.TO_SERVER);
+        PURGE.registerPlayPayload(PluginPurgePacket.ID, PluginPurgePacket.CODEC, PluginPurgePacketHandler.TO_SERVER);
+        RESPONSE.registerPlayPayload(PluginResponsePacket.Payload.ID, PluginResponsePacket.Payload.CODEC, PluginResponsePacketHandler.TO_CLIENT);
+        ROLLBACK.registerPlayPayload(PluginRollbackPacket.ID, PluginRollbackPacket.CODEC, PluginRollbackPacketHandler.TO_SERVER);
+        SEARCH.registerPlayPayload(PluginSearchPacket.ID, PluginSearchPacket.CODEC, PluginSearchPacketHandler.TO_SERVER);
+        WORLD.registerPlayPayload(PluginWorldPacket.Payload.ID, PluginWorldPacket.Payload.CODEC, PluginWorldPacketHandler.TO_CLIENT);
+    }
+
+    public static PluginInspectPacketHandler<PluginInspectPacket> getInspectHandler()
+    {
+        return INSPECT;
+    }
+
+    public static PluginPurgePacketHandler<PluginPurgePacket> getPurgeHandler()
+    {
+        return PURGE;
+    }
+
+    public static PluginSearchPacketHandler<PluginSearchPacket> getSearchHandler()
+    {
+        return SEARCH;
+    }
+
+    public static PluginRollbackPacketHandler<PluginRollbackPacket> getRollbackHandler()
+    {
+        return ROLLBACK;
     }
 }

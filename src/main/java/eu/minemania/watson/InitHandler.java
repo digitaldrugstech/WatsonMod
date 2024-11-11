@@ -40,7 +40,6 @@ public class InitHandler implements IInitializationHandler
         KeyCallbacks.init(MinecraftClient.getInstance());
 
         DataManager.getPlayereditsBaseDirectory();
+        DataManager.registerPayloads();
     }
-
-
 }
