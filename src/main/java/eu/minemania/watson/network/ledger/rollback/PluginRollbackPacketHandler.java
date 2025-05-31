@@ -15,7 +15,7 @@ import java.util.List;
 
 public abstract class PluginRollbackPacketHandler<T extends CustomPayload> implements IPluginClientPlayHandler<T>
 {
-    public static final Identifier CHANNEL = new Identifier("ledger","rollback");
+    public static final Identifier CHANNEL = Identifier.of("ledger","rollback");
     private boolean registered = false;
 
     private final static PluginRollbackPacketHandler<PluginRollbackPacket> INSTANCE = new PluginRollbackPacketHandler<>()

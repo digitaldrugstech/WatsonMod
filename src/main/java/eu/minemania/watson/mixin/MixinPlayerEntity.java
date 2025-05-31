@@ -62,7 +62,7 @@ public abstract class MixinPlayerEntity extends LivingEntity
         return componentln;
     }
 
-    @Redirect(method = "addTellClickEvent(Lnet/minecraft/text/MutableText;)Lnet/minecraft/text/MutableText;", at = @At(value = "INVOKE", target = "Lcom/mojang/authlib/GameProfile;getName()Ljava/lang/String;"))
+    @Redirect(method = "addTellClickEvent(Lnet/minecraft/text/MutableText;)Lnet/minecraft/text/MutableText;", at = @At(value = "INVOKE", target = "Lcom/mojang/authlib/GameProfile;getName()Ljava/lang/String;", remap = false))
     private String changeCustomUsername(GameProfile gameProfile)
     {
         String username = gameProfile.getName();

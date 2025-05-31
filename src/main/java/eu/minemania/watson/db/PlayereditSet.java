@@ -9,7 +9,7 @@ import eu.minemania.watson.render.RenderUtils;
 import eu.minemania.watson.selection.PlayereditUtils;
 import net.minecraft.client.render.*;
 import eu.minemania.watson.config.Configs;
-import fi.dy.masa.malilib.util.Color4f;
+import fi.dy.masa.malilib.util.data.Color4f;
 import net.minecraft.util.math.Vec3d;
 
 public class PlayereditSet
@@ -67,7 +67,7 @@ public class PlayereditSet
     {
         int totalEdits = 0;
         for (BlockEdit edit : _edits) {
-            totalEdits += (int)PlayereditUtils.getInstance().getRevertAction(edit, 0, 1);
+            totalEdits += Integer.valueOf(PlayereditUtils.getInstance().getRevertAction(edit, 0, 1));
         }
         return totalEdits;
     }
@@ -91,12 +91,18 @@ public class PlayereditSet
                 if (DataManager.getWorldPlugin().isEmpty() || DataManager.getWorldPlugin().equals(edit.world))
                 {
                     Tessellator tessellator = Tessellator.getInstance();
-                    BufferBuilder buffer = tessellator.getBuffer();
-                    RenderUtils.startDrawingLines(buffer);
+                    BufferBuilder buffer = RenderUtils.startDrawingLines(tessellator);
+                    BuiltBuffer builtBuffer;
 
-                    PlayereditUtils.getInstance().getRevertAction(edit, null, edit.drawOutline(buffer));
+                    PlayereditUtils.getInstance().getRevertAction(edit, 0, edit.drawOutline(buffer));
 
-                    tessellator.draw();
+                    try {
+                        builtBuffer = buffer.end();
+                        BufferRenderer.drawWithGlobalProgram(builtBuffer);
+                        builtBuffer.close();
+                    } catch (Exception e) {
+                        // Ignored
+                    }
                 }
             }
         }
@@ -148,8 +154,8 @@ public class PlayereditSet
                         if (length >= (float) Configs.Edits.VECTOR_LENGTH.getDoubleValue())
                         {
                             RenderSystem.lineWidth(2f);
-                            buffer.vertex(pPos.x, pPos.y, pPos.z).color(color.r, color.g, color.b, color.a).normal(0,0,0).next();
-                            buffer.vertex(nPos.x, nPos.y, nPos.z).color(color.r, color.g, color.b, color.a).normal(0,0,0).next();
+                            buffer.vertex((float) pPos.x, (float) pPos.y, (float) pPos.z).color(color.r, color.g, color.b, color.a).normal(0,0,0);
+                            buffer.vertex((float) nPos.x, (float) nPos.y, (float) nPos.z).color(color.r, color.g, color.b, color.a).normal(0,0,0);
 
                             // Length from arrow tip to midpoint of vector as a fraction of
                             // the total vector length. Scale the arrow in proportion to the
@@ -181,14 +187,14 @@ public class PlayereditSet
                             Vec3d draw1 = new Vec3d(fin1.x * arrowScale * length, fin1.y * arrowScale * length, fin1.z * arrowScale * length);
                             Vec3d draw2 = new Vec3d(fin2.x * arrowScale * length, fin2.y * arrowScale * length, fin2.z * arrowScale * length);
                             // Draw four fins
-                            buffer.vertex(tip.x, tip.y, tip.z).color(color.r, color.g, color.b, color.a).normal(0,0,0).next();
-                            buffer.vertex(tail.x + draw1.x, tail.y + draw1.y, tail.z + draw1.z).color(color.r, color.g, color.b, color.a).normal(0,0,0).next();
-                            buffer.vertex(tip.x, tip.y, tip.z).color(color.r, color.g, color.b, color.a).normal(0,0,0).next();
-                            buffer.vertex(tail.x - draw1.x, tail.y - draw1.y, tail.z - draw1.z).color(color.r, color.g, color.b, color.a).normal(0,0,0).next();
-                            buffer.vertex(tip.x, tip.y, tip.z).color(color.r, color.g, color.b, color.a).normal(0,0,0).next();
-                            buffer.vertex(tail.x + draw2.x, tail.y + draw2.y, tail.z + draw2.z).color(color.r, color.g, color.b, color.a).normal(0,0,0).next();
-                            buffer.vertex(tip.x, tip.y, tip.z).color(color.r, color.g, color.b, color.a).normal(0,0,0).next();
-                            buffer.vertex(tail.x - draw2.x, tail.y - draw2.y, tail.z - draw2.z).color(color.r, color.g, color.b, color.a).normal(0,0,0).next();
+                            buffer.vertex((float) tip.x, (float) tip.y, (float) tip.z).color(color.r, color.g, color.b, color.a).normal(0,0,0);
+                            buffer.vertex((float) (tail.x + draw1.x), (float) (tail.y + draw1.y), (float) (tail.z + draw1.z)).color(color.r, color.g, color.b, color.a).normal(0,0,0);
+                            buffer.vertex((float) tip.x, (float) tip.y, (float) tip.z).color(color.r, color.g, color.b, color.a).normal(0,0,0);
+                            buffer.vertex((float) (tail.x - draw1.x), (float) (tail.y - draw1.y), (float) (tail.z - draw1.z)).color(color.r, color.g, color.b, color.a).normal(0,0,0);
+                            buffer.vertex((float) tip.x, (float) tip.y, (float) tip.z).color(color.r, color.g, color.b, color.a).normal(0,0,0);
+                            buffer.vertex((float) (tail.x + draw2.x), (float) (tail.y + draw2.y), (float) (tail.z + draw2.z)).color(color.r, color.g, color.b, color.a).normal(0,0,0);
+                            buffer.vertex((float) tip.x, (float) tip.y, (float) tip.z).color(color.r, color.g, color.b, color.a).normal(0,0,0);
+                            buffer.vertex((float) (tail.x - draw2.x), (float) (tail.y - draw2.y), (float) (tail.z - draw2.z)).color(color.r, color.g, color.b, color.a).normal(0,0,0);
                         }
                         prev = next;
                     }

@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public abstract class PluginActionPacketHandler<T extends CustomPayload> implements IPluginClientPlayHandler<T>
 {
-    public static final Identifier CHANNEL = new Identifier("ledger","action");
+    public static final Identifier CHANNEL = Identifier.of("ledger","action");
     private boolean registered = false;
 
     private final static PluginActionPacketHandler<PluginActionPacket.Payload> INSTANCE = new PluginActionPacketHandler<>()

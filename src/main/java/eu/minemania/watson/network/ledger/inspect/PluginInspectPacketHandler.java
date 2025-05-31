@@ -12,7 +12,7 @@ import net.minecraft.util.math.BlockPos;
 
 public abstract class PluginInspectPacketHandler<T extends CustomPayload> implements IPluginClientPlayHandler<T>
 {
-    public static final Identifier CHANNEL = new Identifier("ledger","inspect");
+    public static final Identifier CHANNEL = Identifier.of("ledger","inspect");
     private boolean registered = false;
 
     private final static PluginInspectPacketHandler<PluginInspectPacket> INSTANCE = new PluginInspectPacketHandler<>()

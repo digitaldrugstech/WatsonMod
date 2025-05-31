@@ -15,7 +15,7 @@ import java.util.List;
 
 public abstract class PluginHandshakePacketHandler<T extends CustomPayload> implements IPluginClientPlayHandler<T>
 {
-    public static final Identifier CHANNEL = new Identifier("ledger","handshake");
+    public static final Identifier CHANNEL = Identifier.of("ledger","handshake");
     private boolean registered = false;
 
     private final static PluginHandshakePacketHandler<PluginHandshakePacket.Payload> INSTANCE = new PluginHandshakePacketHandler<>()

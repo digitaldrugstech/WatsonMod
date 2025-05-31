@@ -17,7 +17,6 @@ import java.util.regex.Pattern;
 import eu.minemania.watson.client.Teleport;
 import eu.minemania.watson.render.RenderUtils;
 import net.minecraft.client.render.*;
-import net.minecraft.client.util.math.MatrixStack;
 
 import eu.minemania.watson.chat.ChatMessage;
 import eu.minemania.watson.config.Configs;
@@ -195,7 +194,7 @@ public class BlockEditSet
 
     public synchronized void listEdits()
     {
-        if (playerEdits.size() == 0)
+        if (playerEdits.isEmpty())
         {
             ChatMessage.localOutputT("watson.message.edits.none_world");
         }
@@ -266,15 +265,21 @@ public class BlockEditSet
         if (Configs.Edits.VECTOR_SHOWN.getBooleanValue())
         {
             Tessellator tessellator = Tessellator.getInstance();
-            BufferBuilder buffer = tessellator.getBuffer();
-            RenderUtils.startDrawingLines(buffer);
+            BufferBuilder buffer = RenderUtils.startDrawingLines(tessellator);
+            BuiltBuffer builtBuffer;
             int nextColorIndex1 = 0;
             for (PlayereditSet editsForPlayer : playerEdits.values())
             {
                 editsForPlayer.drawVectors(OverlayRenderer.KELLY_COLORS[nextColorIndex1], buffer);
                 nextColorIndex1 = (nextColorIndex1 + 1) % OverlayRenderer.KELLY_COLORS.length;
             }
-            tessellator.draw();
+            try {
+                builtBuffer = buffer.end();
+                BufferRenderer.drawWithGlobalProgram(builtBuffer);
+                builtBuffer.close();
+            } catch (Exception e) {
+                // Ignored
+            }
         }
     }
 

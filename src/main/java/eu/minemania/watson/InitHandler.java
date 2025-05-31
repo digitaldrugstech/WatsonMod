@@ -6,6 +6,7 @@ import eu.minemania.watson.event.InputHandler;
 import eu.minemania.watson.event.KeyCallbacks;
 import eu.minemania.watson.event.RenderHandler;
 import eu.minemania.watson.event.WorldLoadListener;
+import eu.minemania.watson.gui.GuiConfigs;
 import eu.minemania.watson.scheduler.ClientTickHandler;
 import fi.dy.masa.malilib.config.ConfigManager;
 import fi.dy.masa.malilib.event.InputEventHandler;
@@ -14,6 +15,8 @@ import fi.dy.masa.malilib.event.TickHandler;
 import fi.dy.masa.malilib.event.WorldLoadHandler;
 import fi.dy.masa.malilib.interfaces.IInitializationHandler;
 import fi.dy.masa.malilib.interfaces.IRenderer;
+import fi.dy.masa.malilib.registry.Registry;
+import fi.dy.masa.malilib.util.data.ModInfo;
 import net.minecraft.client.MinecraftClient;
 
 public class InitHandler implements IInitializationHandler
@@ -22,6 +25,9 @@ public class InitHandler implements IInitializationHandler
     public void registerModHandlers()
     {
         ConfigManager.getInstance().registerConfigHandler(Reference.MOD_ID, new Configs());
+        Registry.CONFIG_SCREEN.registerConfigScreenFactory(
+                new ModInfo(Reference.MOD_ID, Reference.MOD_NAME, GuiConfigs::new)
+        );
 
         InputEventHandler.getKeybindManager().registerKeybindProvider(InputHandler.getInstance());
         InputEventHandler.getInputManager().registerKeyboardInputHandler(InputHandler.getInstance());

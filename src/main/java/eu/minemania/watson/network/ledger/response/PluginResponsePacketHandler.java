@@ -11,7 +11,7 @@ import net.minecraft.util.Identifier;
 
 public abstract class PluginResponsePacketHandler<T extends CustomPayload> implements IPluginClientPlayHandler<T>
 {
-    public static final Identifier CHANNEL = new Identifier("ledger","response");
+    public static final Identifier CHANNEL = Identifier.of("ledger","response");
     private boolean registered = false;
 
     private final static PluginResponsePacketHandler<PluginResponsePacket.Payload> INSTANCE = new PluginResponsePacketHandler<>()

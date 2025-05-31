@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.7+1.21] - 2025-05-31
+
+### Added
+
+- Support Minecraft 1.21.1
+- Rewrite Revert action feature to give no errors while building
+
+### Changed
+
+- Changed translation keys
+
 ## [1.15.6+1.20.6] - 2024-11-11
 
 ### Added

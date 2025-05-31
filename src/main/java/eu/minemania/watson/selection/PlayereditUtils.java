@@ -69,7 +69,7 @@ public class PlayereditUtils
 
                 for (BlockEdit edit : playeredit.getBlockEdits())
                 {
-                    if ((boolean) getInstance().getRevertAction(edit, false, true))
+                    if (Boolean.valueOf(getInstance().getRevertAction(edit, false, true)))
                     {
                         String typeName = type.getStack().getItem().toString();
                         String blockName = getItemStack(edit.block.getName()).getItem().toString();
@@ -307,7 +307,7 @@ public class PlayereditUtils
         return StringUtils.translate("watson.gui.label.blockedit.list.blocks", blockedit.x, blockedit.y, blockedit.z, day, month, year, hour, minute, second, blockedit.world, blockedit.amount, blockedit.action);
     }
 
-    public <T> Object getRevertAction(BlockEdit blockedit, T returnDisabled, T returnEnabled)
+    public <T> String getRevertAction(BlockEdit blockedit, T returnDisabled, T returnEnabled)
     {
         if (Configs.Generic.ACTION_REVERSE.getBooleanValue())
         {
@@ -322,13 +322,13 @@ public class PlayereditUtils
                         Actions.getReverseAction(blockEditHistory, blockedit);
                         if (blockedit.disabled)
                         {
-                            return returnDisabled;
+                            return String.valueOf(returnDisabled);
                         }
                     }
                 }
             }
         }
-        return returnEnabled;
+        return String.valueOf(returnEnabled);
     }
 
     public enum Edit

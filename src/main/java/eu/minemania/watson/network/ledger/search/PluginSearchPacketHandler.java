@@ -15,7 +15,7 @@ import java.util.List;
 
 public abstract class PluginSearchPacketHandler<T extends CustomPayload> implements IPluginClientPlayHandler<T>
 {
-    public static final Identifier CHANNEL = new Identifier("ledger","search");
+    public static final Identifier CHANNEL = Identifier.of("ledger","search");
     private boolean registered = false;
 
     private final static PluginSearchPacketHandler<PluginSearchPacket> INSTANCE = new PluginSearchPacketHandler<>()

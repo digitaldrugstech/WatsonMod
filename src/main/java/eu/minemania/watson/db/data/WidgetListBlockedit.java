@@ -115,7 +115,11 @@ public class WidgetListBlockedit extends WidgetListBase<BlockeditEntry, WidgetBl
         }
         if (Configs.Generic.ACTION_REVERSE.getBooleanValue())
         {
-            return (List<String>) PlayereditUtils.getInstance().getRevertAction(entry.getEdit(), ImmutableList.of(), ImmutableList.of(PlayereditUtils.blockString(entry.getEdit(), PlayereditUtils.Edit.DESCRIPTION)));
+            return ImmutableList.of(PlayereditUtils.getInstance().getRevertAction(
+                    entry.getEdit(),
+                    "",
+                    PlayereditUtils.blockString(entry.getEdit(), PlayereditUtils.Edit.DESCRIPTION)
+            ));
         }
         return ImmutableList.of();
     }

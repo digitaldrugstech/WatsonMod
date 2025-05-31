@@ -15,7 +15,7 @@ import java.util.List;
 
 public abstract class PluginPurgePacketHandler<T extends CustomPayload> implements IPluginClientPlayHandler<T>
 {
-    public static final Identifier CHANNEL = new Identifier("ledger","purge");
+    public static final Identifier CHANNEL = Identifier.of("ledger","purge");
     private boolean registered = false;
 
     private final static PluginPurgePacketHandler<PluginPurgePacket> INSTANCE = new PluginPurgePacketHandler<>()

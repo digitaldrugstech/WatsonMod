@@ -12,7 +12,7 @@ import net.minecraft.util.Identifier;
 
 public abstract class PluginWorldPacketHandler<T extends CustomPayload> implements IPluginClientPlayHandler<T>
 {
-    public static final Identifier CHANNEL = new Identifier("watson","world");
+    public static final Identifier CHANNEL = Identifier.of("watson","world");
     private boolean registered;
 
     private final static PluginWorldPacketHandler<PluginWorldPacket.Payload> INSTANCE = new PluginWorldPacketHandler<>()

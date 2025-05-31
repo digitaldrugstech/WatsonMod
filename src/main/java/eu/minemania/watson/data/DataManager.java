@@ -3,6 +3,8 @@ package eu.minemania.watson.data;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,12 +48,10 @@ import fi.dy.masa.malilib.util.FileUtils;
 import fi.dy.masa.malilib.util.InfoUtils;
 import fi.dy.masa.malilib.util.JsonUtils;
 import fi.dy.masa.malilib.util.StringUtils;
-import fi.dy.masa.malilib.util.WorldUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ServerInfo;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.Registries;
-import net.minecraft.world.World;
 
 public class DataManager implements IDirectoryCache
 {
@@ -178,9 +178,9 @@ public class DataManager implements IDirectoryCache
 
     public static void load()
     {
-        File file = getCurrentStorageFile(true);
+        Path file = getCurrentStorageFile();
 
-        JsonElement element = JsonUtils.parseJsonFile(file);
+        JsonElement element = JsonUtils.parseJsonFileAsPath(file);
 
         if (element != null && element.isJsonObject())
         {
@@ -253,20 +253,20 @@ public class DataManager implements IDirectoryCache
 
         root.add("config_gui_tab", new JsonPrimitive(configGuiTab.name()));
 
-        File file = getCurrentStorageFile(true);
-        JsonUtils.writeJsonToFile(root, file);
+        Path file = getCurrentStorageFile();
+        JsonUtils.writeJsonToFileAsPath(root, file);
 
         canSave = false;
     }
 
-    public static File getCurrentConfigDirectory()
+    public static Path getCurrentConfigDirectory()
     {
-        return new File(FileUtils.getConfigDirectory(), Reference.MOD_ID);
+        return FileUtils.getConfigDirectoryAsPath().resolve(Reference.MOD_ID);
     }
 
     public static File getPlayereditsBaseDirectory()
     {
-        File dir = FileUtils.getCanonicalFileIfPossible(new File(FileUtils.getMinecraftDirectory(), "playeredits"));
+        File dir = FileUtils.getCanonicalFileIfPossible(new File(FileUtils.getMinecraftDirectoryAsPath().toFile(), "playeredits"));
 
         if (!dir.exists() && !dir.mkdirs())
         {
@@ -276,36 +276,33 @@ public class DataManager implements IDirectoryCache
         return dir;
     }
 
-    private static File getCurrentStorageFile(boolean globalData)
+    private static Path getCurrentStorageFile()
     {
-        File dir = getCurrentConfigDirectory();
+        Path dir = getCurrentConfigDirectory();
 
-        if (!dir.exists() && !dir.mkdirs())
+        if (!Files.exists(dir))
         {
-            Watson.logger.warn("Failed to create the config directory '{}'", dir.getAbsolutePath());
+            FileUtils.createDirectoriesIfMissing(dir);
         }
 
-        return new File(dir, getStorageFileName(globalData));
+        if (!Files.isDirectory(dir))
+        {
+            Watson.logger.warn("Failed to create the config directory '{}'", dir.toAbsolutePath());
+        }
+
+        return dir.resolve(getStorageFileName());
     }
 
-    private static String getStorageFileName(boolean globalData)
+    private static String getStorageFileName()
     {
-        MinecraftClient mc = MinecraftClient.getInstance();
         String name = StringUtils.getWorldOrServerName();
-        World world = mc.world;
-        if (name == null || world == null)
+
+        if (name == null)
         {
             return Reference.MOD_ID + "_default.json";
         }
 
-        if (globalData)
-        {
-            return Reference.MOD_ID + "_" + name + ".json";
-        }
-        else
-        {
-            return Reference.MOD_ID + "_" + name + "_dim" + WorldUtils.getDimensionId(world) + ".json";
-        }
+        return Reference.MOD_ID + "_" + name + ".json";
     }
 
     public static String getServerIP()
@@ -585,7 +582,7 @@ public class DataManager implements IDirectoryCache
         @Override
         public boolean accept(File file)
         {
-            return file.isFile() && file.canRead() && (_lowerPrefix.length() == 0 || file.getName().toLowerCase().startsWith(_lowerPrefix));
+            return file.isFile() && file.canRead() && (_lowerPrefix.isEmpty() || file.getName().toLowerCase().startsWith(_lowerPrefix));
         }
     }
 

@@ -16,7 +16,7 @@ import eu.minemania.watson.db.WatsonBlockRegistery;
 import eu.minemania.watson.scheduler.SyncTaskQueue;
 import eu.minemania.watson.scheduler.tasks.AddBlockEditTask;
 import fi.dy.masa.malilib.gui.Message.MessageType;
-import fi.dy.masa.malilib.util.Color4f;
+import fi.dy.masa.malilib.util.data.Color4f;
 import fi.dy.masa.malilib.util.InfoUtils;
 import fi.dy.masa.malilib.util.StringUtils;
 import net.minecraft.server.command.ServerCommandSource;
@@ -1001,7 +1001,7 @@ public class WatsonCommand extends WatsonCommandBase
                     ClientCommandManager.sendFeedback(Text.literal("/" + cmdName + " " + u));
                 }
                 cmdCount += usage.size();
-                if (usage.size() == 0)
+                if (usage.isEmpty())
                 {
                     ClientCommandManager.sendFeedback(Text.literal("/" + cmdName));
                     cmdCount++;

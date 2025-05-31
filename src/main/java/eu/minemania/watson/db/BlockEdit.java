@@ -6,7 +6,7 @@ import java.util.Optional;
 import com.mojang.blaze3d.systems.RenderSystem;
 import eu.minemania.watson.config.Configs;
 import eu.minemania.watson.render.RenderUtils;
-import fi.dy.masa.malilib.util.Color4f;
+import fi.dy.masa.malilib.util.data.Color4f;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.block.BlockRenderManager;
@@ -59,7 +59,7 @@ public class BlockEdit
         return this.additional;
     }
 
-    public Object drawOutline(BufferBuilder buffer)
+    public int drawOutline(BufferBuilder buffer)
     {
         Block blocks = Registries.BLOCK.get(Identifier.tryParse(block.getName()));
         float lineWidth = block.getLineWidth();
@@ -77,7 +77,7 @@ public class BlockEdit
             RenderSystem.lineWidth(lineWidth);
             renderEntities(buffer);
         }
-        return null;
+        return 0;
     }
 
     private void renderBlocks(BufferBuilder buffer, Block blocks)
