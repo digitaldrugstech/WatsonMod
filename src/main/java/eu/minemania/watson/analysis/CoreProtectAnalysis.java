@@ -14,6 +14,7 @@ import eu.minemania.watson.scheduler.SyncTaskQueue;
 import eu.minemania.watson.scheduler.tasks.AddBlockEditTask;
 import eu.minemania.watson.selection.EditSelection;
 import fi.dy.masa.malilib.util.InfoUtils;
+import fi.dy.masa.malilib.util.data.Color4f;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 
@@ -43,6 +44,7 @@ import net.minecraft.text.MutableText;
  */
 public class CoreProtectAnalysis extends Analysis
 {
+    public static boolean isCpMessage = false;
     protected boolean _isLookup = false;
     protected boolean _firstInspectorResult = false;
     protected boolean _lookupDetails = false;
@@ -113,6 +115,7 @@ public class CoreProtectAnalysis extends Analysis
 
     void details(MutableText chat, Matcher m)
     {
+        isCpMessage = true;
         _lookupDetails = false;
         HoverEvent hover = chat.getSiblings().get(0).getStyle().getHoverEvent();
         if (hover != null && hover.getValue(hover.getAction()) != null)
@@ -134,6 +137,8 @@ public class CoreProtectAnalysis extends Analysis
             _loop = Integer.parseInt(m.group(5));
         }
         _block = WatsonBlockRegistery.getInstance().getWatsonBlockByName(block);
+        Color4f color = _block.getOverrideColor() != Color4f.ZERO && _block.getOverrideColor() != null ? _block.getOverrideColor() : _block.getColor();
+        Analysis.colorBlock = color != null ? color.intValue : 0;
         if (_isLookup)
         {
             // Record that we can use these details at the next
@@ -157,6 +162,7 @@ public class CoreProtectAnalysis extends Analysis
 
     void detailsSession(MutableText chat, Matcher m)
     {
+        isCpMessage = true;
         _lookupDetails = false;
         HoverEvent hover = chat.getSiblings().get(0).getStyle().getHoverEvent();
         if (hover != null && hover.getValue(hover.getAction()) != null)
@@ -173,6 +179,8 @@ public class CoreProtectAnalysis extends Analysis
         String block = "minecraft:player";
         _loop = 1;
         _block = WatsonBlockRegistery.getInstance().getWatsonBlockByName(block);
+        Color4f color = _block.getOverrideColor() != Color4f.ZERO && _block.getOverrideColor() != null ? _block.getOverrideColor() : _block.getColor();
+        Analysis.colorBlock = color != null ? color.intValue : 0;
         // Record that we can use these details at the next
         // coreprotect.lookupcoords only.
         _lookupDetails = true;
@@ -180,6 +188,7 @@ public class CoreProtectAnalysis extends Analysis
 
     void detailsSign(MutableText chat, Matcher m)
     {
+        isCpMessage = true;
         _lookupDetails = false;
         HoverEvent hover = chat.getSiblings().get(0).getStyle().getHoverEvent();
         if (hover != null && hover.getValue(hover.getAction()) != null)
@@ -203,6 +212,8 @@ public class CoreProtectAnalysis extends Analysis
         _block = WatsonBlockRegistery.getInstance().getWatsonBlockByName(block);
         if (DataManager.getFilters().isAcceptedPlayer(_player))
         {
+            Color4f color = _block.getOverrideColor() != Color4f.ZERO && _block.getOverrideColor() != null ? _block.getOverrideColor() : _block.getColor();
+            Analysis.colorBlock = color != null ? color.intValue : 0;
             BlockEdit edit = new BlockEdit(_millis, _player, _action, _x, _y, _z, _block, _world, 1);
             SyncTaskQueue.getInstance().addTask(new AddBlockEditTask(edit, _firstInspectorResult));
 
@@ -215,6 +226,7 @@ public class CoreProtectAnalysis extends Analysis
 
     void inspectorCoords(MutableText chat, Matcher m)
     {
+        isCpMessage = true;
         _isLookup = false;
         _x = Integer.parseInt(m.group(1));
         _y = Integer.parseInt(m.group(2));
@@ -227,6 +239,7 @@ public class CoreProtectAnalysis extends Analysis
 
     void lookupCoords(MutableText chat, Matcher m)
     {
+        isCpMessage = false;
         _isLookup = true;
         if (_lookupDetails)
         {
@@ -263,6 +276,7 @@ public class CoreProtectAnalysis extends Analysis
         }
         if (Configs.Plugin.AUTO_PAGE.getBooleanValue())
         {
+            isCpMessage = false;
             if (pageCount <= Configs.Plugin.MAX_AUTO_PAGES.getIntegerValue())
             {
                 Paginator.getInstance().setCurrentPage(currentPage);
@@ -302,6 +316,7 @@ public class CoreProtectAnalysis extends Analysis
     public static void reset()
     {
         _looping = false;
+        isCpMessage = false;
         Paginator.getInstance().reset();
     }
 

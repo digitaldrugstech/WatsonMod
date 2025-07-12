@@ -16,6 +16,7 @@ import net.minecraft.text.MutableText;
 public class Analysis implements IChatHandler
 {
     protected static ListMultimap<String, IMatchedChatHandler> m = ArrayListMultimap.create();
+    public static int colorBlock = 0;
 
     public boolean dispatchMatchedChat(MutableText chat)
     {

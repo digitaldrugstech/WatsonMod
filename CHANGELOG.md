@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.0+1.21.3] - 2025-07-12
+
+### Added
+
+- Support Minecraft 1.21.2-1.21.3
+- Image for ModMenu
+- Color behind chat message option under "Highlights" section
+- Full block outline option under "Outlines" section
+- Rolledback custom color and enable config option for it under "Highlights" section (only works with CoreProtect)
+
+### Changed
+
+- CoreProtect lookup header regex filter, you need to manually reset it in the config
+- Default color for outline changed to a more visible color and width increased
+
 ## [1.15.7+1.21] - 2025-05-31
 
 ### Added

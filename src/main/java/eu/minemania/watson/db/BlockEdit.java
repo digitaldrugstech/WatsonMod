@@ -98,7 +98,12 @@ public class BlockEdit
                 {
                     if (blocks instanceof SignBlock || blocks instanceof WallSignBlock)
                     {
-                        RenderUtils.drawSpecialOutlinesBatched(x, y, z, color, buffer, true);
+                        if (Configs.Outlines.FULL_BLOCK_OUTLINE.getBooleanValue()) {
+                            RenderUtils.drawFullBlockOutlinesBatched(x, y, z, color, buffer);
+                        } else
+                        {
+                            RenderUtils.drawSpecialOutlinesBatched(x, y, z, color, buffer, true);
+                        }
                     }
                     else if (blocks instanceof ChestBlock || blocks instanceof ShulkerBoxBlock)
                     {
@@ -110,7 +115,11 @@ public class BlockEdit
                     }
                     else
                     {
-                        RenderUtils.drawBlockModelOutlinesBatched(model, state, new BlockPos(x, y, z), color, buffer);
+                        if (Configs.Outlines.FULL_BLOCK_OUTLINE.getBooleanValue()) {
+                            RenderUtils.drawFullBlockOutlinesBatched(x, y, z, color, buffer);
+                        } else {
+                            RenderUtils.drawBlockModelOutlinesBatched(model, state, new BlockPos(x, y, z), color, buffer);
+                        }
                     }
                 }
             }

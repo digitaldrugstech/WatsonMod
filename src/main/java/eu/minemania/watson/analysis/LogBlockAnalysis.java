@@ -21,6 +21,7 @@ import eu.minemania.watson.scheduler.SyncTaskQueue;
 import eu.minemania.watson.scheduler.tasks.AddBlockEditTask;
 import eu.minemania.watson.selection.EditSelection;
 import fi.dy.masa.malilib.util.StringUtils;
+import fi.dy.masa.malilib.util.data.Color4f;
 import net.minecraft.text.*;
 import net.minecraft.util.Formatting;
 
@@ -192,6 +193,8 @@ public class LogBlockAnalysis extends Analysis
             }
             if (DataManager.getFilters().isAcceptedPlayer(player))
             {
+                Color4f color = type.getOverrideColor() != Color4f.ZERO && type.getOverrideColor() != null ? type.getOverrideColor() : type.getColor();
+                Analysis.colorBlock = color != null ? color.intValue : 0;
                 BlockEdit edit = new BlockEdit(millis, player, action, coordX, coordY, coordZ, type, _world, count);
                 SyncTaskQueue.getInstance().addTask(new AddBlockEditTask(edit, _expectingFirstEdit));
 

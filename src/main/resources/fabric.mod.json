@@ -15,6 +15,7 @@
     "discord": "https://discord.gg/VTHVVgt"
   },
   "license": "MIT",
+  "icon": "assets/watson/icon.png",
   "environment": "client",
   "entrypoints": {
     "client": [

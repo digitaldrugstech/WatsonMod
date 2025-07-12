@@ -97,12 +97,14 @@ public class Configs implements IConfigHandler
 
     public static class Outlines
     {
+        public static final ConfigBoolean FULL_BLOCK_OUTLINE = new ConfigBoolean("fullBlockOutline", false, "watson.config.full_block_outline.description");
         public static final ConfigBoolean ONLY_ORE_BLOCK = new ConfigBoolean("onlyOreBlock", false, "watson.config.only_ore_block.description");
         public static final ConfigInteger ORE_LINEWIDTH = new ConfigInteger("oreLinewidth", 3, 1, 10, "watson.config.ore_linewidth.description");
         public static final ConfigBoolean ORE_OUTLINE_THICKER = new ConfigBoolean("oreOutlineThicker", false, "watson.config.ore_outline_thicker.description");
         public static final ConfigBoolean OUTLINE_SHOWN = new ConfigBoolean("outlineshown", true, "watson.config.outline_shown.description");
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
+                FULL_BLOCK_OUTLINE,
                 ONLY_ORE_BLOCK,
                 ORE_LINEWIDTH,
                 ORE_OUTLINE_THICKER,
@@ -139,18 +141,24 @@ public class Configs implements IConfigHandler
 
     public static class Highlights
     {
+        public static final ConfigBoolean COLOR_BLOCK_CHAT = new ConfigBoolean("colorBlockChat", false, "watson.config.color_block_chat.description");
         public static final ConfigBoolean HIGHLIGHT_CASE_SENSITIVE = new ConfigBoolean("highlightCaseSensitive", true, "watson.config.highlight_case_sensitive.description");
         public static final ConfigString HIGHLIGHT_SOUND = new ConfigString("highlightSound", "", "watson.config.highlight_sound.description");
         public static final ConfigBoolean HIGHLIGHT_SOUND_ENABLE = new ConfigBoolean("highlightSoundEnable", false, "watson.config.highlight_sound_enable.description");
         public static final ConfigDouble HIGHLIGHT_SOUND_VOLUME = new ConfigDouble("highlightSoundVolume", 1, 0, 1, "watson.config.highlight_sound_volume.description");
+        public static final ConfigColor ROLLED_BACK_TEXT_COLOR = new ConfigColor("rolledBackTextColor", "0xCC737373", "watson.config.rolled_back_text_color.description");
         public static final ConfigBoolean USE_CHAT_HIGHLIGHTS = new ConfigBoolean("useChatHighlights", false, "watson.config.use_chat_highlights.description");
+        public static final ConfigBoolean USE_CUSTOM_ROLLED_BACK_TEXT_COLOR = new ConfigBoolean("useCustomRolledBackTextColor", false, "watson.config.use_custom_rolled_back_text_color.description");
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
+                COLOR_BLOCK_CHAT,
                 HIGHLIGHT_CASE_SENSITIVE,
                 HIGHLIGHT_SOUND,
                 HIGHLIGHT_SOUND_ENABLE,
                 HIGHLIGHT_SOUND_VOLUME,
-                USE_CHAT_HIGHLIGHTS
+                ROLLED_BACK_TEXT_COLOR,
+                USE_CHAT_HIGHLIGHTS,
+                USE_CUSTOM_ROLLED_BACK_TEXT_COLOR
         );
     }
 
@@ -207,7 +215,7 @@ public class Configs implements IConfigHandler
         public static final ConfigStringExt CP_DETAILS_SIGN = new ConfigStringExt("cp details sign", "^(\\d+[.,]\\d+\\/[mhd] ago|\\d{1,2}-\\d{1,2} \\d{1,2}:\\d{2}:\\d{2}) - (\\w+): ([\\s\\w+\\W]+)", "watson.config.analysis.description").setCommentArgs("cp details sign");
         public static final ConfigStringExt CP_INSPECTOR_COORDS = new ConfigStringExt("cp inspector coords", "^-{5} \\w+(?:\\s\\w+)* -{5} \\(x(-?\\d+)\\/y(-?\\d+)\\/z(-?\\d+)\\)$", "watson.config.analysis.description").setCommentArgs("cp inspector coords");
         public static final ConfigStringExt CP_LOOKUP_COORDS = new ConfigStringExt("cp lookup coords", "^ +\\^ \\(x(-?\\d+)\\/y(-?\\d+)\\/z(-?\\d+)\\/([^\\)]+)\\)(?: \\(.+\\))?$", "watson.config.analysis.description").setCommentArgs("cp lookup coords");
-        public static final ConfigStringExt CP_LOOKUP_HEADER = new ConfigStringExt("cp lookup header", "^----- CoreProtect Lookup Results -----$", "watson.config.analysis.description").setCommentArgs("cp lookup header");
+        public static final ConfigStringExt CP_LOOKUP_HEADER = new ConfigStringExt("cp lookup header", "^----- CoreProtect |  Lookup Results -----$", "watson.config.analysis.description").setCommentArgs("cp lookup header");
         public static final ConfigStringExt CP_NO_RESULT = new ConfigStringExt("cp no result", "^CoreProtect - No results found.$", "watson.config.analysis.description").setCommentArgs("cp no result");
         public static final ConfigStringExt CP_PAGE = new ConfigStringExt("cp page", "^(?:.\\s)*Page (\\d+)\\/(\\d+) (?:.\\s)*", "watson.config.analysis.description").setCommentArgs("cp page");
         public static final ConfigStringExt CP_SEARCH = new ConfigStringExt("cp search", "^CoreProtect - Lookup searching. Please wait...$", "watson.config.analysis.description").setCommentArgs("cp search");
@@ -312,8 +320,8 @@ public class Configs implements IConfigHandler
 
         for (String name : DataManager.getAllItemEntitiesStringIdentifiers())
         {
-            Optional<Block> optionalBlock = Registries.BLOCK.getOrEmpty(Identifier.of(name));
-            Optional<Item> optionalItem = Registries.ITEM.getOrEmpty(optionalBlock.map(block -> Registries.ITEM.getId(block.asItem())).orElseGet(() -> Identifier.of(name)));
+            Optional<Block> optionalBlock = Registries.BLOCK.getOptionalValue(Identifier.of(name));
+            Optional<Item> optionalItem = Registries.ITEM.getOptionalValue(optionalBlock.map(block -> Registries.ITEM.getId(block.asItem())).orElseGet(() -> Identifier.of(name)));
 
             if (optionalItem.isEmpty())
             {
@@ -324,7 +332,7 @@ public class Configs implements IConfigHandler
                 color = setCustomColorOres(optionalItem.get());
             }
 
-            list.add(name + ";2;" + color);
+            list.add(name + ";4;" + color);
             color = "";
         }
 
@@ -367,7 +375,7 @@ public class Configs implements IConfigHandler
             DEFAULT_COLORS.put(Items.LARGE_AMETHYST_BUD, "#CC6532B8");
             DEFAULT_COLORS.put(Items.AMETHYST_CLUSTER, "#CC6532B8");
         }
-        return DEFAULT_COLORS.getOrDefault((Item) object, "#CC737373");
+        return DEFAULT_COLORS.getOrDefault((Item) object, "#CC05E2F2");
     }
 
     /**
