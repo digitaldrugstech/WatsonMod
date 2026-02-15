@@ -2,8 +2,8 @@ package eu.minemania.watson.gui;
 
 import eu.minemania.watson.Reference;
 import fi.dy.masa.malilib.gui.interfaces.IGuiIcon;
+import fi.dy.masa.malilib.render.GuiContext;
 import fi.dy.masa.malilib.render.RenderUtils;
-import net.minecraft.client.gui.DrawContext;
 import net.minecraft.util.Identifier;
 
 public enum Icons implements IGuiIcon
@@ -55,9 +55,9 @@ public enum Icons implements IGuiIcon
     }
 
     @Override
-    public void renderAt(int x, int y, float zLevel, boolean enabled, boolean selected, DrawContext drawContext)
+    public void renderAt(GuiContext guiContext, int x, int y, float zLevel, boolean enabled, boolean selected)
     {
-        RenderUtils.drawTexturedRect(x, y, this.u, this.v, this.w, this.h, zLevel);
+        RenderUtils.drawTexturedRect(guiContext, TEXTURE, x, y, this.u, this.v, this.w, this.h, zLevel);
     }
 
     @Override

@@ -10,7 +10,6 @@ import eu.minemania.watson.db.PlayereditSet;
 import eu.minemania.watson.render.RenderUtils;
 import fi.dy.masa.malilib.util.WorldUtils;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.BuiltBuffer;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.Entity;
@@ -116,7 +115,7 @@ public class EditSelection
             idBuilder.append(serverIP);
         }
         idBuilder.append('/');
-        idBuilder.append(WorldUtils.getDimensionId(player.getWorld()));
+        idBuilder.append(WorldUtils.getDimensionId(player.getEntityWorld()));
         String id = idBuilder.toString();
 
         BlockEditSet edits = _edits.get(id);
@@ -135,7 +134,6 @@ public class EditSelection
             Tessellator tesselator = Tessellator.getInstance();
             BufferBuilder buffer = RenderUtils.startDrawingLines(tesselator);
             BuiltBuffer builtBuffer;
-            RenderSystem.lineWidth(4.0F);
 
             final float halfSize = 0.3f;
             float x = _selection.x + 0.5f;
@@ -149,7 +147,6 @@ public class EditSelection
             buffer.vertex(x, y, z + halfSize).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
             try {
                 builtBuffer = buffer.end();
-                BufferRenderer.drawWithGlobalProgram(builtBuffer);
                 builtBuffer.close();
             } catch (Exception e) {
                 // Ignored
@@ -161,12 +158,10 @@ public class EditSelection
                 if (previous != null)
                 {
                     buffer = RenderUtils.startDrawingLines(tesselator);
-                    RenderSystem.lineWidth(3.0F);
                     buffer.vertex(previous.x + 0.5f, previous.y + 0.5f, previous.z + 0.5f).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
                     buffer.vertex(x, y, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
                     try {
                         builtBuffer = buffer.end();
-                        BufferRenderer.drawWithGlobalProgram(builtBuffer);
                         builtBuffer.close();
                     } catch (Exception e) {
                         // Ignored
@@ -265,7 +260,7 @@ public class EditSelection
                 if (timing <= edit.time)
                 {
                     Vec3d editPos = new Vec3d(edit.x, edit.y, edit.z);
-                    if (entity.getPos().isInRange(editPos, radius))
+                    if (entity.getEntityPos().isInRange(editPos, radius))
                     {
                         edits.add(edit);
                     }

@@ -118,9 +118,9 @@ public class CoreProtectAnalysis extends Analysis
         isCpMessage = true;
         _lookupDetails = false;
         HoverEvent hover = chat.getSiblings().get(0).getStyle().getHoverEvent();
-        if (hover != null && hover.getValue(hover.getAction()) != null)
+        if (hover instanceof HoverEvent.ShowText showText)
         {
-            String text = ((MutableText) hover.getValue(hover.getAction())).getString().replaceAll("\u00A7.", "");
+            String text = showText.value().getString().replaceAll("\u00A7.", "");
             _millis = TimeStamp.parseTimeExpression(text, m.group(1));
         }
         else
@@ -165,9 +165,9 @@ public class CoreProtectAnalysis extends Analysis
         isCpMessage = true;
         _lookupDetails = false;
         HoverEvent hover = chat.getSiblings().get(0).getStyle().getHoverEvent();
-        if (hover != null && hover.getValue(hover.getAction()) != null)
+        if (hover instanceof HoverEvent.ShowText showText)
         {
-            String text = ((MutableText) hover.getValue(hover.getAction())).getString().replaceAll("\u00A7.", "");
+            String text = showText.value().getString().replaceAll("\u00A7.", "");
             _millis = TimeStamp.parseTimeExpression(text, m.group(1));
         }
         else
@@ -191,9 +191,9 @@ public class CoreProtectAnalysis extends Analysis
         isCpMessage = true;
         _lookupDetails = false;
         HoverEvent hover = chat.getSiblings().get(0).getStyle().getHoverEvent();
-        if (hover != null && hover.getValue(hover.getAction()) != null)
+        if (hover instanceof HoverEvent.ShowText showText)
         {
-            String text = ((MutableText) hover.getValue(hover.getAction())).getString().replaceAll("\u00A7.", "");
+            String text = showText.value().getString().replaceAll("\u00A7.", "");
             _millis = TimeStamp.parseTimeExpression(text, m.group(1));
         }
         else

@@ -2,17 +2,14 @@ package eu.minemania.watson.render;
 
 import java.util.List;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import fi.dy.masa.malilib.util.data.Color4f;
-import fi.dy.masa.malilib.util.PositionUtils;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.*;
-import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
+import net.minecraft.client.render.model.BlockStateModel;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.random.Random;
-import org.joml.Vector3f;
 
 public class RenderUtils
 {
@@ -20,8 +17,7 @@ public class RenderUtils
 
     public static BufferBuilder startDrawingLines(Tessellator tessellator)
     {
-        RenderSystem.setShader(ShaderProgramKeys.RENDERTYPE_LINES);
-        return tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.LINES);
+        return tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR_NORMAL);
     }
 
     //START TEMP MALILIB
@@ -291,54 +287,19 @@ public class RenderUtils
     /**
      * Assumes a BufferBuilder in the GL_LINES mode has been initialized
      */
-    public static void drawBlockModelOutlinesBatched(BakedModel model, BlockState state, BlockPos pos, Color4f color, BufferBuilder buffer)
+    public static void drawBlockModelOutlinesBatched(BlockStateModel model, BlockState state, BlockPos pos, Color4f color, BufferBuilder buffer)
     {
-        for (final Direction side : PositionUtils.ALL_DIRECTIONS)
-        {
-            renderModelQuadOutlines(pos, color, model.getQuads(state, side, RAND), buffer);
-        }
-
-        renderModelQuadOutlines(pos, color, model.getQuads(state, null, RAND), buffer);
+        // 1.21.11 rendering internals changed; use a full block outline fallback.
+        drawFullBlockOutlinesBatched(pos.getX(), pos.getY(), pos.getZ(), color, buffer);
     }
 
     private static void renderModelQuadOutlines(BlockPos pos, Color4f color, List<BakedQuad> quads, BufferBuilder buffer)
     {
-        for (BakedQuad quad : quads)
-        {
-            renderQuadOutlinesBatched(pos, color, quad, buffer);
-        }
+        // Kept for compatibility with older callsites; quads are ignored on 1.21.11.
     }
 
     private static void renderQuadOutlinesBatched(BlockPos pos, Color4f color, BakedQuad quad, BufferBuilder buffer)
     {
-        final int x = pos.getX();
-        final int y = pos.getY();
-        final int z = pos.getZ();
-        int[] vertexData = quad.getVertexData();
-        Vec3i vec3i = quad.getFace().getVector();
-        Vector3f vec3f = new Vector3f(vec3i.getX(), vec3i.getY(), vec3i.getZ());
-        final int vertexSize = vertexData.length / 4;
-        float[] fx = new float[4];
-        float[] fy = new float[4];
-        float[] fz = new float[4];
-
-        for (int index = 0; index < 4; ++index)
-        {
-            fx[index] = x + Float.intBitsToFloat(vertexData[index * vertexSize]);
-            fy[index] = y + Float.intBitsToFloat(vertexData[index * vertexSize + 1]);
-            fz[index] = z + Float.intBitsToFloat(vertexData[index * vertexSize + 2]);
-        }
-
-        buffer.vertex(fx[0], fy[0], fz[0]).color(color.r, color.g, color.b, color.a).normal(vec3f.x, vec3f.y, vec3f.z);
-        buffer.vertex(fx[1], fy[1], fz[1]).color(color.r, color.g, color.b, color.a).normal(vec3f.x, vec3f.y, vec3f.z);
-
-        buffer.vertex(fx[1], fy[1], fz[1]).color(color.r, color.g, color.b, color.a).normal(vec3f.x, vec3f.y, vec3f.z);
-        buffer.vertex(fx[2], fy[2], fz[2]).color(color.r, color.g, color.b, color.a).normal(vec3f.x, vec3f.y, vec3f.z);
-
-        buffer.vertex(fx[2], fy[2], fz[2]).color(color.r, color.g, color.b, color.a).normal(vec3f.x, vec3f.y, vec3f.z);
-        buffer.vertex(fx[3], fy[3], fz[3]).color(color.r, color.g, color.b, color.a).normal(vec3f.x, vec3f.y, vec3f.z);
-
-        buffer.vertex(fx[3], fy[3], fz[3]).color(color.r, color.g, color.b, color.a).normal(vec3f.x, vec3f.y, vec3f.z);
-        buffer.vertex(fx[0], fy[0], fz[0]).color(color.r, color.g, color.b, color.a).normal(vec3f.x, vec3f.y, vec3f.z);
+        // Legacy no-op on 1.21.11.
     }
 }

@@ -11,9 +11,9 @@ import fi.dy.masa.malilib.gui.button.ButtonBase;
 import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.widgets.WidgetListEntryBase;
+import fi.dy.masa.malilib.render.GuiContext;
 import fi.dy.masa.malilib.render.RenderUtils;
 import fi.dy.masa.malilib.util.StringUtils;
-import net.minecraft.client.gui.DrawContext;
 
 public class WidgetPlayereditEntry extends WidgetListEntryBase<PlayereditSet>
 {
@@ -61,10 +61,8 @@ public class WidgetPlayereditEntry extends WidgetListEntryBase<PlayereditSet>
     }
 
     @Override
-    public void render(int mouseX, int mouseY, boolean selected, DrawContext drawContext)
+    public void render(GuiContext guiContext, int mouseX, int mouseY, boolean selected)
     {
-        RenderUtils.color(1f, 1f, 1f, 1f);
-
         if (selected || this.isMouseOver(mouseX, mouseY))
         {
             RenderUtils.drawRect(this.x, this.y, this.width, this.height, 0x70FFFFFF);
@@ -79,22 +77,16 @@ public class WidgetPlayereditEntry extends WidgetListEntryBase<PlayereditSet>
         }
 
         String playerName = this.entry.getPlayer();
-        this.drawString(this.x + 20, this.y + 7, 0xFFFFFFFF, playerName, drawContext);
-
-        RenderUtils.color(1f, 1f, 1f, 1f);
-        RenderSystem.disableBlend();
+        this.drawString(guiContext, this.x + 20, this.y + 7, 0xFFFFFFFF, playerName);
 
         String text = StringUtils.translate("watson.gui.button.playeredit.hover", this.entry.getBlockEditCount());
 
-        this.drawSubWidgets(mouseX, mouseY, drawContext);
+        this.drawSubWidgets(guiContext, mouseX, mouseY);
 
         if (GuiBase.isMouseOver(mouseX, mouseY, this.x, this.y, this.buttonsStartX - 12, this.height))
         {
-            RenderUtils.drawHoverText(mouseX, mouseY, ImmutableList.of(text), drawContext);
+            RenderUtils.drawHoverText(guiContext, mouseX, mouseY, ImmutableList.of(text));
         }
-
-        RenderUtils.disableDiffuseLighting();
-        //RenderSystem.disableLighting();
     }
 
     private static class ButtonListener implements IButtonActionListener

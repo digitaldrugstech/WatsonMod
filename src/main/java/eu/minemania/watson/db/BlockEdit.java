@@ -3,15 +3,14 @@ package eu.minemania.watson.db;
 import java.util.HashMap;
 import java.util.Optional;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import eu.minemania.watson.config.Configs;
 import eu.minemania.watson.render.RenderUtils;
 import fi.dy.masa.malilib.util.data.Color4f;
 import net.minecraft.block.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.block.BlockRenderManager;
-import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.model.BlockStateModel;
 import net.minecraft.entity.EntityType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -69,12 +68,10 @@ public class BlockEdit
             {
                 lineWidth = Configs.Outlines.ORE_LINEWIDTH.getIntegerValue();
             }
-            RenderSystem.lineWidth(lineWidth);
             renderBlocks(buffer, blocks);
         }
         else
         {
-            RenderSystem.lineWidth(lineWidth);
             renderEntities(buffer);
         }
         return 0;
@@ -87,7 +84,7 @@ public class BlockEdit
                 !block.getName().equals("minecraft:lava"))
         {
             BlockState state = blocks.getDefaultState();
-            BakedModel model = this.blockModelShapes.getModel(state);
+            BlockStateModel model = this.blockModelShapes.getModel(state);
             if (Configs.Lists.SMALLER_RENDER_BOX.getStrings().contains(block.getName()))
             {
                 RenderUtils.drawBlockBoundingBoxOutlinesBatchedLines(new BlockPos(x, y, z), color, -0.25, buffer);

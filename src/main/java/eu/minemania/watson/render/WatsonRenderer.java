@@ -8,9 +8,7 @@ import eu.minemania.watson.db.BlockEditSet;
 import eu.minemania.watson.selection.EditSelection;
 import fi.dy.masa.malilib.render.RenderUtils;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Fog;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.profiler.Profiler;
 import org.joml.Matrix4fStack;
 
 public class WatsonRenderer
@@ -24,7 +22,7 @@ public class WatsonRenderer
         return INSTANCE;
     }
 
-    public void piecewiseRenderEntities(MinecraftClient mc, Profiler profiler, Fog fog)
+    public void piecewiseRenderEntities(MinecraftClient mc)
     {
         if (this.mc == null)
         {
@@ -32,38 +30,20 @@ public class WatsonRenderer
         }
         if (Configs.Generic.DISPLAYED.getBooleanValue() && this.mc.getCameraEntity() != null && Configs.Outlines.OUTLINE_SHOWN.getBooleanValue())
         {
-            profiler.push(() -> "watson_entities");
-            RenderSystem.setShaderFog(Fog.DUMMY);
             EditSelection selection = DataManager.getEditSelection();
             BlockEditSet edits = selection.getBlockEditSet();
             Matrix4fStack matrixStack = RenderSystem.getModelViewStack();
             matrixStack.pushMatrix();
-            RenderSystem.disableCull();
 
-            RenderUtils.setupBlend();
-
-            RenderUtils.color(1f, 1f, 1f, 1f);
-            RenderSystem.depthMask(false);
-
-            RenderSystem.disableDepthTest();
-
-            Vec3d cameraPos = this.mc.gameRenderer.getCamera().getPos();
+            RenderUtils.blend(true);
+            Vec3d cameraPos = this.mc.gameRenderer.getCamera().getCameraPos();
 
             matrixStack.translate((float) -cameraPos.getX(), (float) -cameraPos.getY(), (float) -cameraPos.getZ());
             edits.drawOutlines();
             edits.drawVectors();
             selection.drawSelection();
 
-            RenderSystem.enableDepthTest();
-            RenderSystem.depthMask(true);
-
-            RenderSystem.disableBlend();
-
-            RenderSystem.enableCull();
-
             matrixStack.popMatrix();
-            RenderSystem.setShaderFog(fog);
-            profiler.pop();
         }
     }
 }

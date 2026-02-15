@@ -3,7 +3,6 @@ package eu.minemania.watson.db;
 import java.io.PrintWriter;
 import java.util.*;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import eu.minemania.watson.data.DataManager;
 import eu.minemania.watson.render.RenderUtils;
 import eu.minemania.watson.selection.PlayereditUtils;
@@ -98,7 +97,6 @@ public class PlayereditSet
 
                     try {
                         builtBuffer = buffer.end();
-                        BufferRenderer.drawWithGlobalProgram(builtBuffer);
                         builtBuffer.close();
                     } catch (Exception e) {
                         // Ignored
@@ -153,7 +151,6 @@ public class PlayereditSet
                         double length = diff.length();
                         if (length >= (float) Configs.Edits.VECTOR_LENGTH.getDoubleValue())
                         {
-                            RenderSystem.lineWidth(2f);
                             buffer.vertex((float) pPos.x, (float) pPos.y, (float) pPos.z).color(color.r, color.g, color.b, color.a).normal(0,0,0);
                             buffer.vertex((float) nPos.x, (float) nPos.y, (float) nPos.z).color(color.r, color.g, color.b, color.a).normal(0,0,0);
 

@@ -275,7 +275,6 @@ public class BlockEditSet
             }
             try {
                 builtBuffer = buffer.end();
-                BufferRenderer.drawWithGlobalProgram(builtBuffer);
                 builtBuffer.close();
             } catch (Exception e) {
                 // Ignored
