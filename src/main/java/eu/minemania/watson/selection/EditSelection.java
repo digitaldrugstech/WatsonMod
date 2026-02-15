@@ -8,6 +8,7 @@ import eu.minemania.watson.db.BlockEditComparator;
 import eu.minemania.watson.db.BlockEditSet;
 import eu.minemania.watson.db.PlayereditSet;
 import eu.minemania.watson.render.RenderUtils;
+import eu.minemania.watson.render.WatsonRenderLayers;
 import fi.dy.masa.malilib.util.WorldUtils;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.render.BuiltBuffer;
@@ -139,17 +140,24 @@ public class EditSelection
             float x = _selection.x + 0.5f;
             float y = _selection.y + 0.5f;
             float z = _selection.z + 0.5f;
-            buffer.vertex(x - halfSize, y, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
-            buffer.vertex(x + halfSize, y, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
-            buffer.vertex(x, y - halfSize, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
-            buffer.vertex(x, y + halfSize, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
-            buffer.vertex(x, y, z - halfSize).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
-            buffer.vertex(x, y, z + halfSize).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
+            buffer.vertex(x - halfSize, y, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0).lineWidth(2.5f);
+            buffer.vertex(x + halfSize, y, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0).lineWidth(2.5f);
+            buffer.vertex(x, y - halfSize, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0).lineWidth(2.5f);
+            buffer.vertex(x, y + halfSize, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0).lineWidth(2.5f);
+            buffer.vertex(x, y, z - halfSize).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0).lineWidth(2.5f);
+            buffer.vertex(x, y, z + halfSize).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0).lineWidth(2.5f);
             try {
-                builtBuffer = buffer.end();
-                builtBuffer.close();
+                builtBuffer = buffer.endNullable();
+                if (builtBuffer != null)
+                {
+                    WatsonRenderLayers.getNoDepthLinesLayer().draw(builtBuffer);
+                    builtBuffer.close();
+                }
             } catch (Exception e) {
-                // Ignored
+                if (Configs.Generic.DEBUG.getBooleanValue())
+                {
+                    Watson.logger.warn("Failed to draw selection buffer", e);
+                }
             }
 
             if (_selection.playereditSet != null)
@@ -158,13 +166,20 @@ public class EditSelection
                 if (previous != null)
                 {
                     buffer = RenderUtils.startDrawingLines(tesselator);
-                    buffer.vertex(previous.x + 0.5f, previous.y + 0.5f, previous.z + 0.5f).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
-                    buffer.vertex(x, y, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
+                    buffer.vertex(previous.x + 0.5f, previous.y + 0.5f, previous.z + 0.5f).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0).lineWidth(2.5f);
+                    buffer.vertex(x, y, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0).lineWidth(2.5f);
                     try {
-                        builtBuffer = buffer.end();
-                        builtBuffer.close();
+                        builtBuffer = buffer.endNullable();
+                        if (builtBuffer != null)
+                        {
+                            WatsonRenderLayers.getNoDepthLinesLayer().draw(builtBuffer);
+                            builtBuffer.close();
+                        }
                     } catch (Exception e) {
-                        // Ignored
+                        if (Configs.Generic.DEBUG.getBooleanValue())
+                        {
+                            Watson.logger.warn("Failed to draw selection link buffer", e);
+                        }
                     }
                 }
             }

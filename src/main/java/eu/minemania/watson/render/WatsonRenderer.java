@@ -1,6 +1,7 @@
 package eu.minemania.watson.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.opengl.GlStateManager;
 
 import eu.minemania.watson.config.Configs;
 import eu.minemania.watson.data.DataManager;
@@ -35,13 +36,22 @@ public class WatsonRenderer
             Matrix4fStack matrixStack = RenderSystem.getModelViewStack();
             matrixStack.pushMatrix();
 
+            //noinspection removal
             RenderUtils.blend(true);
             Vec3d cameraPos = this.mc.gameRenderer.getCamera().getCameraPos();
 
             matrixStack.translate((float) -cameraPos.getX(), (float) -cameraPos.getY(), (float) -cameraPos.getZ());
-            edits.drawOutlines();
-            edits.drawVectors();
-            selection.drawSelection();
+            GlStateManager._disableDepthTest();
+            try
+            {
+                edits.drawOutlines();
+                edits.drawVectors();
+                selection.drawSelection();
+            }
+            finally
+            {
+                GlStateManager._enableDepthTest();
+            }
 
             matrixStack.popMatrix();
         }

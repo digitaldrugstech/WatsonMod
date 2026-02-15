@@ -14,8 +14,10 @@ import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import eu.minemania.watson.Watson;
 import eu.minemania.watson.client.Teleport;
 import eu.minemania.watson.render.RenderUtils;
+import eu.minemania.watson.render.WatsonRenderLayers;
 import net.minecraft.client.render.*;
 
 import eu.minemania.watson.chat.ChatMessage;
@@ -274,10 +276,17 @@ public class BlockEditSet
                 nextColorIndex1 = (nextColorIndex1 + 1) % OverlayRenderer.KELLY_COLORS.length;
             }
             try {
-                builtBuffer = buffer.end();
-                builtBuffer.close();
+                builtBuffer = buffer.endNullable();
+                if (builtBuffer != null)
+                {
+                    WatsonRenderLayers.getNoDepthLinesLayer().draw(builtBuffer);
+                    builtBuffer.close();
+                }
             } catch (Exception e) {
-                // Ignored
+                if (Configs.Generic.DEBUG.getBooleanValue())
+                {
+                    Watson.logger.warn("Failed to draw vector buffer", e);
+                }
             }
         }
     }
