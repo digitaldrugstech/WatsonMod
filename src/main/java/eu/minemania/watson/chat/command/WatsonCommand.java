@@ -986,16 +986,20 @@ public class WatsonCommand extends WatsonCommandBase
         return 1;
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static int help(CommandContext<ServerCommandSource> context)
     {
         int cmdCount = 0;
-        CommandDispatcher<ServerCommandSource> dispatcher = Command.commandDispatcher;
-        for (CommandNode<ServerCommandSource> command : dispatcher.getRoot().getChildren())
+        // Cast to raw CommandDispatcher to avoid checkcast of ClientCommandSource to ServerCommandSource.
+        // Watson's commands use the default requirement (s -> true) which ignores the source, so null is safe.
+        CommandDispatcher rawDispatcher = Command.commandDispatcher;
+        for (Object child : rawDispatcher.getRoot().getChildren())
         {
+            CommandNode<ServerCommandSource> command = (CommandNode<ServerCommandSource>) child;
             String cmdName = command.getName();
             if (ClientCommandManager.isClientSideCommand(cmdName))
             {
-                Map<CommandNode<ServerCommandSource>, String> usage = dispatcher.getSmartUsage(command, context.getSource());
+                Map<CommandNode<ServerCommandSource>, String> usage = rawDispatcher.getSmartUsage(command, null);
                 for (String u : usage.values())
                 {
                     ClientCommandManager.sendFeedback(Text.literal("/" + cmdName + " " + u));
@@ -1038,11 +1042,11 @@ public class WatsonCommand extends WatsonCommandBase
             {
                 error = "radius";
             }
-            localErrorT(context.getSource(), "watson.error.command.replay." + error);
+            localErrorT("watson.error.command.replay." + error);
             return 0;
         }
 
-        DataManager.getEditSelection().replay(since, speed, radius, context.getSource());
+        DataManager.getEditSelection().replay(since, speed, radius);
         return 1;
     }
 

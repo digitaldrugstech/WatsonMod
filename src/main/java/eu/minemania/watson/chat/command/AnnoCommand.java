@@ -57,16 +57,20 @@ public class AnnoCommand extends WatsonCommandBase
         dispatcher.register(anno);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static int help(CommandContext<ServerCommandSource> context)
     {
         int cmdCount = 0;
-        CommandDispatcher<ServerCommandSource> dispatcher = Command.commandDispatcher;
-        for (CommandNode<ServerCommandSource> command : dispatcher.getRoot().getChildren())
+        // Cast to raw CommandDispatcher to avoid checkcast of ClientCommandSource to ServerCommandSource.
+        // Watson's commands use the default requirement (s -> true) which ignores the source, so null is safe.
+        CommandDispatcher rawDispatcher = Command.commandDispatcher;
+        for (Object child : rawDispatcher.getRoot().getChildren())
         {
+            CommandNode<ServerCommandSource> command = (CommandNode<ServerCommandSource>) child;
             String cmdName = command.getName();
             if (ClientCommandManager.isClientSideCommand(cmdName))
             {
-                Map<CommandNode<ServerCommandSource>, String> usage = dispatcher.getSmartUsage(command, context.getSource());
+                Map<CommandNode<ServerCommandSource>, String> usage = rawDispatcher.getSmartUsage(command, null);
                 for (String u : usage.values())
                 {
                     ClientCommandManager.sendFeedback(Text.literal("/" + cmdName + " " + u));
@@ -87,11 +91,11 @@ public class AnnoCommand extends WatsonCommandBase
         BlockEditSet edits = DataManager.getEditSelection().getBlockEditSet();
         ArrayList<Annotation> annotations = edits.getAnnotations();
 
-        localOutputT(context.getSource(), "watson.message.anno.list.size", annotations.size());
+        localOutputT("watson.message.anno.list.size", annotations.size());
         int index = 1;
         for (Annotation annotation : annotations)
         {
-            localOutputT(context.getSource(), "watson.message.anno.annot", index, annotation.getX(), annotation.getY(), annotation.getZ(), annotation.getWorld(), annotation.getText());
+            localOutputT("watson.message.anno.annot", index, annotation.getX(), annotation.getY(), annotation.getZ(), annotation.getWorld(), annotation.getText());
             ++index;
         }
         return 1;
@@ -101,11 +105,11 @@ public class AnnoCommand extends WatsonCommandBase
     {
         ArrayList<Annotation> annotations = LocalAnnotation.getInstance().getAnnotations();
 
-        localOutputT(context.getSource(), "watson.message.anno.list.size", annotations.size());
+        localOutputT("watson.message.anno.list.size", annotations.size());
         int index = 1;
         for (Annotation annotation : annotations)
         {
-            localOutputT(context.getSource(), "watson.message.anno.annot", index, annotation.getX(), annotation.getY(), annotation.getZ(), annotation.getWorld(), annotation.getText());
+            localOutputT("watson.message.anno.annot", index, annotation.getX(), annotation.getY(), annotation.getZ(), annotation.getWorld(), annotation.getText());
             ++index;
         }
         return 1;
@@ -181,7 +185,7 @@ public class AnnoCommand extends WatsonCommandBase
         }
         else
         {
-            localErrorT(context.getSource(), "watson.error.anno.out_range");
+            localErrorT("watson.error.anno.out_range");
         }
         return 1;
     }
@@ -198,7 +202,7 @@ public class AnnoCommand extends WatsonCommandBase
         }
         else
         {
-            localErrorT(context.getSource(), "watson.error.anno.out_range");
+            localErrorT("watson.error.anno.out_range");
         }
         return 1;
     }
@@ -222,7 +226,7 @@ public class AnnoCommand extends WatsonCommandBase
             String text = getString(context, "text");
             Annotation annotation = new Annotation(x, y, z, world, text);
             annotations.add(annotation);
-            localOutputT(context.getSource(), "watson.message.anno.annot", annotations.size(), annotation.getX(), annotation.getY(), annotation.getZ(), annotation.getWorld(), annotation.getText());
+            localOutputT("watson.message.anno.annot", annotations.size(), annotation.getX(), annotation.getY(), annotation.getZ(), annotation.getWorld(), annotation.getText());
         }
         return 1;
     }
@@ -252,7 +256,7 @@ public class AnnoCommand extends WatsonCommandBase
             String text = getString(context, "text");
             Annotation annotation = new Annotation(blockPos.getX(), blockPos.getY(), blockPos.getZ(), world, text);
             annotations.add(annotation);
-            localOutputT(context.getSource(), "watson.message.anno.annot", annotations.size(), annotation.getX(), annotation.getY(), annotation.getZ(), annotation.getWorld(), annotation.getText());
+            localOutputT("watson.message.anno.annot", annotations.size(), annotation.getX(), annotation.getY(), annotation.getZ(), annotation.getWorld(), annotation.getText());
         }
         return 1;
     }

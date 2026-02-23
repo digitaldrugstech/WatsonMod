@@ -59,26 +59,20 @@ public class BlockEdit
         return this.additional;
     }
 
-    public int drawOutline(BufferBuilder buffer, Set<Long> drawnOrePositions)
+    public void drawOutline(BufferBuilder buffer, Set<Long> drawnOrePositions)
     {
         if (cachedBlock == null) {
             cachedBlock = Registries.BLOCK.get(Identifier.tryParse(block.getName()));
         }
         Block blocks = cachedBlock;
-        float lineWidth = block.getLineWidth();
         if (!blocks.getName().getString().toLowerCase().contains("air"))
         {
-            if (Configs.Outlines.ORE_OUTLINE_THICKER.getBooleanValue() && isOreBlock(blocks))
-            {
-                lineWidth = Configs.Outlines.ORE_LINEWIDTH.getIntegerValue();
-            }
             renderBlocks(buffer, blocks, drawnOrePositions);
         }
         else
         {
             renderEntities(buffer);
         }
-        return 0;
     }
 
     private void renderBlocks(BufferBuilder buffer, Block blocks, Set<Long> drawnOrePositions)

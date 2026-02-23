@@ -16,6 +16,10 @@ if (ENV.LOADERS) {
 group = project.group + "." + project.mod_id // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 version = project.mod_version + '+' + project.minecraft_version_mod
 
+loom {
+	accessWidenerPath = file("src/main/resources/watson.accesswidener")
+}
+
 base {
 	archivesName = project.mod_file_name
 }

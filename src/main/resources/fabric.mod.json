@@ -14,6 +14,7 @@
     "twitter": "https://twitter.com/ArneLangenbergh",
     "discord": "https://discord.gg/VTHVVgt"
   },
+  "accessWidener": "watson.accesswidener",
   "license": "MIT",
   "icon": "assets/watson/icon.png",
   "environment": "client",

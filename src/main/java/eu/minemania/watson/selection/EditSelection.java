@@ -17,7 +17,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
-import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import eu.minemania.watson.Watson;
@@ -246,11 +245,11 @@ public class EditSelection
         }
     }
 
-    public void replay(String since, double speed, int radius, ServerCommandSource source)
+    public void replay(String since, double speed, int radius)
     {
         TreeSet<BlockEdit> edits = new TreeSet<>(new BlockEditComparator());
         long timing = DataManager.getTimeDiff(since);
-        Entity entity = source.getEntity();
+        Entity entity = MinecraftClient.getInstance().player;
 
         if (entity == null)
         {

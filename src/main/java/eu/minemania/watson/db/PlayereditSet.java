@@ -97,7 +97,6 @@ public class PlayereditSet
 
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder buffer = RenderUtils.startDrawingLines(tessellator);
-        boolean hasContent = false;
         Set<Long> drawnOrePositions = new HashSet<>();
 
         for (BlockEdit edit : _edits) {
@@ -107,22 +106,19 @@ public class PlayereditSet
                 double dz = edit.z - camera.getZ();
                 if (dx * dx + dy * dy + dz * dz > viewDistSq) continue;
 
-                int result = edit.drawOutline(buffer, drawnOrePositions);
-                if (result > 0) hasContent = true;
-                PlayereditUtils.getInstance().getRevertAction(edit, 0, result);
+                edit.drawOutline(buffer, drawnOrePositions);
+                PlayereditUtils.getInstance().getRevertAction(edit, 0, 1);
             }
         }
 
-        if (hasContent) {
-            try {
-                BuiltBuffer builtBuffer = buffer.endNullable();
-                if (builtBuffer != null) {
-                    WatsonRenderLayers.getNoDepthLinesLayer().draw(builtBuffer);
-                    builtBuffer.close();
-                }
-            } catch (Exception e) {
-                Watson.logger.warn("Failed to draw outline buffer", e);
+        try {
+            BuiltBuffer builtBuffer = buffer.endNullable();
+            if (builtBuffer != null) {
+                WatsonRenderLayers.getNoDepthLinesLayer().draw(builtBuffer);
+                builtBuffer.close();
             }
+        } catch (Exception e) {
+            Watson.logger.warn("Failed to draw outline buffer", e);
         }
     }
 

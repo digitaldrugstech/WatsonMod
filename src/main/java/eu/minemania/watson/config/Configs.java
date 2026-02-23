@@ -196,7 +196,16 @@ public class Configs implements IConfigHandler
     {
         public static final ConfigStringList HIGHLIGHT = new ConfigStringList("highlight", ImmutableList.of(), "watson.config.highlight.description");
         public static final ConfigStringList OVERRIDING_ACTIONS = new ConfigStringList("overriding actions", ImmutableList.of(), "watson.config.overriding_actions.description");
-        public static final ConfigStringList SMALLER_RENDER_BOX = new ConfigStringList("Smaller render box", ImmutableList.of("minecraft:stone", "minecraft:gravel", "minecraft:dirt", "minecraft:diorite", "minecraft:sand", "minecraft:andesite", "minecraft:granite"), "watson.config.smaller_render_box.description");
+        public static final ConfigStringList SMALLER_RENDER_BOX = new ConfigStringList("Smaller render box", ImmutableList.of(
+                "minecraft:stone", "minecraft:dirt", "minecraft:grass_block", "minecraft:gravel", "minecraft:sand",
+                "minecraft:red_sand", "minecraft:cobblestone", "minecraft:mossy_cobblestone", "minecraft:netherrack",
+                "minecraft:end_stone", "minecraft:sandstone", "minecraft:red_sandstone", "minecraft:clay",
+                "minecraft:granite", "minecraft:diorite", "minecraft:andesite", "minecraft:tuff", "minecraft:calcite",
+                "minecraft:deepslate", "minecraft:cobbled_deepslate", "minecraft:mud", "minecraft:packed_mud",
+                "minecraft:soul_sand", "minecraft:soul_soil", "minecraft:basalt", "minecraft:blackstone",
+                "minecraft:mycelium", "minecraft:podzol", "minecraft:coarse_dirt", "minecraft:rooted_dirt",
+                "minecraft:mud_bricks", "minecraft:smooth_stone", "minecraft:obsidian", "minecraft:bedrock"
+        ), "watson.config.smaller_render_box.description");
         public static final ConfigStringList WATSON_BLOCKS = new ConfigStringList("watson blocks", setWatsonBlockData(), "watson.config.watson_blocks.description");
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
@@ -375,7 +384,7 @@ public class Configs implements IConfigHandler
             DEFAULT_COLORS.put(Items.LARGE_AMETHYST_BUD, "#CC6532B8");
             DEFAULT_COLORS.put(Items.AMETHYST_CLUSTER, "#CC6532B8");
         }
-        return DEFAULT_COLORS.getOrDefault((Item) object, "#CC05E2F2");
+        return DEFAULT_COLORS.getOrDefault((Item) object, "#CC808080");
     }
 
     /**
