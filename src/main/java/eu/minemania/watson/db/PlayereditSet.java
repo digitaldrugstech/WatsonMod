@@ -11,6 +11,8 @@ import eu.minemania.watson.selection.PlayereditUtils;
 import net.minecraft.client.render.*;
 import eu.minemania.watson.config.Configs;
 import fi.dy.masa.malilib.util.data.Color4f;
+import net.minecraft.entity.Entity;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.Vec3d;
 
 public class PlayereditSet
@@ -85,32 +87,41 @@ public class PlayereditSet
 
     public synchronized void drawOutlines()
     {
-        if (isVisible())
-        {
-            for (BlockEdit edit : _edits)
-            {
-                if (DataManager.getWorldPlugin().isEmpty() || DataManager.getWorldPlugin().equals(edit.world))
-                {
-                    Tessellator tessellator = Tessellator.getInstance();
-                    BufferBuilder buffer = RenderUtils.startDrawingLines(tessellator);
-                    BuiltBuffer builtBuffer;
+        if (!isVisible()) return;
 
-                    PlayereditUtils.getInstance().getRevertAction(edit, 0, edit.drawOutline(buffer));
+        MinecraftClient mc = MinecraftClient.getInstance();
+        Entity camera = mc.getCameraEntity();
+        if (camera == null) return;
+        int viewDist = mc.options.getViewDistance().getValue() * 16;
+        double viewDistSq = (double) viewDist * viewDist;
 
-                    try {
-                        builtBuffer = buffer.endNullable();
-                        if (builtBuffer != null)
-                        {
-                            WatsonRenderLayers.getNoDepthLinesLayer().draw(builtBuffer);
-                            builtBuffer.close();
-                        }
-                    } catch (Exception e) {
-                        if (Configs.Generic.DEBUG.getBooleanValue())
-                        {
-                            Watson.logger.warn("Failed to draw outline buffer for edit at ({}, {}, {})", edit.x, edit.y, edit.z, e);
-                        }
-                    }
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = RenderUtils.startDrawingLines(tessellator);
+        boolean hasContent = false;
+        Set<Long> drawnOrePositions = new HashSet<>();
+
+        for (BlockEdit edit : _edits) {
+            if (DataManager.getWorldPlugin().isEmpty() || DataManager.getWorldPlugin().equals(edit.world)) {
+                double dx = edit.x - camera.getX();
+                double dy = edit.y - camera.getY();
+                double dz = edit.z - camera.getZ();
+                if (dx * dx + dy * dy + dz * dz > viewDistSq) continue;
+
+                int result = edit.drawOutline(buffer, drawnOrePositions);
+                if (result > 0) hasContent = true;
+                PlayereditUtils.getInstance().getRevertAction(edit, 0, result);
+            }
+        }
+
+        if (hasContent) {
+            try {
+                BuiltBuffer builtBuffer = buffer.endNullable();
+                if (builtBuffer != null) {
+                    WatsonRenderLayers.getNoDepthLinesLayer().draw(builtBuffer);
+                    builtBuffer.close();
                 }
+            } catch (Exception e) {
+                Watson.logger.warn("Failed to draw outline buffer", e);
             }
         }
     }
@@ -160,8 +171,8 @@ public class PlayereditSet
                         double length = diff.length();
                         if (length >= (float) Configs.Edits.VECTOR_LENGTH.getDoubleValue())
                         {
-                            buffer.vertex((float) pPos.x, (float) pPos.y, (float) pPos.z).color(color.r, color.g, color.b, color.a).normal(0,0,0).lineWidth(2.5f);
-                            buffer.vertex((float) nPos.x, (float) nPos.y, (float) nPos.z).color(color.r, color.g, color.b, color.a).normal(0,0,0).lineWidth(2.5f);
+                            RenderUtils.addVertex(buffer, (float) pPos.x, (float) pPos.y, (float) pPos.z, color);
+                            RenderUtils.addVertex(buffer, (float) nPos.x, (float) nPos.y, (float) nPos.z, color);
 
                             // Length from arrow tip to midpoint of vector as a fraction of
                             // the total vector length. Scale the arrow in proportion to the
@@ -193,14 +204,14 @@ public class PlayereditSet
                             Vec3d draw1 = new Vec3d(fin1.x * arrowScale * length, fin1.y * arrowScale * length, fin1.z * arrowScale * length);
                             Vec3d draw2 = new Vec3d(fin2.x * arrowScale * length, fin2.y * arrowScale * length, fin2.z * arrowScale * length);
                             // Draw four fins
-                            buffer.vertex((float) tip.x, (float) tip.y, (float) tip.z).color(color.r, color.g, color.b, color.a).normal(0,0,0).lineWidth(2.5f);
-                            buffer.vertex((float) (tail.x + draw1.x), (float) (tail.y + draw1.y), (float) (tail.z + draw1.z)).color(color.r, color.g, color.b, color.a).normal(0,0,0).lineWidth(2.5f);
-                            buffer.vertex((float) tip.x, (float) tip.y, (float) tip.z).color(color.r, color.g, color.b, color.a).normal(0,0,0).lineWidth(2.5f);
-                            buffer.vertex((float) (tail.x - draw1.x), (float) (tail.y - draw1.y), (float) (tail.z - draw1.z)).color(color.r, color.g, color.b, color.a).normal(0,0,0).lineWidth(2.5f);
-                            buffer.vertex((float) tip.x, (float) tip.y, (float) tip.z).color(color.r, color.g, color.b, color.a).normal(0,0,0).lineWidth(2.5f);
-                            buffer.vertex((float) (tail.x + draw2.x), (float) (tail.y + draw2.y), (float) (tail.z + draw2.z)).color(color.r, color.g, color.b, color.a).normal(0,0,0).lineWidth(2.5f);
-                            buffer.vertex((float) tip.x, (float) tip.y, (float) tip.z).color(color.r, color.g, color.b, color.a).normal(0,0,0).lineWidth(2.5f);
-                            buffer.vertex((float) (tail.x - draw2.x), (float) (tail.y - draw2.y), (float) (tail.z - draw2.z)).color(color.r, color.g, color.b, color.a).normal(0,0,0).lineWidth(2.5f);
+                            RenderUtils.addVertex(buffer, (float) tip.x, (float) tip.y, (float) tip.z, color);
+                            RenderUtils.addVertex(buffer, (float) (tail.x + draw1.x), (float) (tail.y + draw1.y), (float) (tail.z + draw1.z), color);
+                            RenderUtils.addVertex(buffer, (float) tip.x, (float) tip.y, (float) tip.z, color);
+                            RenderUtils.addVertex(buffer, (float) (tail.x - draw1.x), (float) (tail.y - draw1.y), (float) (tail.z - draw1.z), color);
+                            RenderUtils.addVertex(buffer, (float) tip.x, (float) tip.y, (float) tip.z, color);
+                            RenderUtils.addVertex(buffer, (float) (tail.x + draw2.x), (float) (tail.y + draw2.y), (float) (tail.z + draw2.z), color);
+                            RenderUtils.addVertex(buffer, (float) tip.x, (float) tip.y, (float) tip.z, color);
+                            RenderUtils.addVertex(buffer, (float) (tail.x - draw2.x), (float) (tail.y - draw2.y), (float) (tail.z - draw2.z), color);
                         }
                         prev = next;
                     }

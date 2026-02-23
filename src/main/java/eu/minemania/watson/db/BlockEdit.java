@@ -2,6 +2,7 @@ package eu.minemania.watson.db;
 
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.Set;
 
 import eu.minemania.watson.config.Configs;
 import eu.minemania.watson.render.RenderUtils;
@@ -30,7 +31,7 @@ public class BlockEdit
     public PlayereditSet playereditSet;
     public boolean disabled;
     private final BlockRenderManager blockModelShapes;
-    protected boolean drawn;
+    private Block cachedBlock;
     private HashMap<String,Object> additional;
 
     public BlockEdit(long time, String player, String action, int x, int y, int z, WatsonBlock block, String world, int amount)
@@ -58,9 +59,12 @@ public class BlockEdit
         return this.additional;
     }
 
-    public int drawOutline(BufferBuilder buffer)
+    public int drawOutline(BufferBuilder buffer, Set<Long> drawnOrePositions)
     {
-        Block blocks = Registries.BLOCK.get(Identifier.tryParse(block.getName()));
+        if (cachedBlock == null) {
+            cachedBlock = Registries.BLOCK.get(Identifier.tryParse(block.getName()));
+        }
+        Block blocks = cachedBlock;
         float lineWidth = block.getLineWidth();
         if (!blocks.getName().getString().toLowerCase().contains("air"))
         {
@@ -68,7 +72,7 @@ public class BlockEdit
             {
                 lineWidth = Configs.Outlines.ORE_LINEWIDTH.getIntegerValue();
             }
-            renderBlocks(buffer, blocks);
+            renderBlocks(buffer, blocks, drawnOrePositions);
         }
         else
         {
@@ -77,7 +81,7 @@ public class BlockEdit
         return 0;
     }
 
-    private void renderBlocks(BufferBuilder buffer, Block blocks)
+    private void renderBlocks(BufferBuilder buffer, Block blocks, Set<Long> drawnOrePositions)
     {
         Color4f color = block.getOverrideColor() != Color4f.ZERO && block.getOverrideColor() != null ? block.getOverrideColor() : block.getColor();
         if (!block.getName().equals("minecraft:grass") && !block.getName().equals("minecraft:water") &&
@@ -91,7 +95,7 @@ public class BlockEdit
             }
             else
             {
-                if (isOreNotDrawn())
+                if (isOreNotDrawn(drawnOrePositions))
                 {
                     if (blocks instanceof SignBlock || blocks instanceof WallSignBlock)
                     {
@@ -120,14 +124,10 @@ public class BlockEdit
                     }
                 }
             }
-            if (!drawn && this.isOreBlock(blocks))
-            {
-                drawn = true;
-            }
         }
         else
         {
-            if (isOreNotDrawn())
+            if (isOreNotDrawn(drawnOrePositions))
             {
                 RenderUtils.drawFullBlockOutlinesBatched(x, y, z, color, buffer);
             }
@@ -155,17 +155,11 @@ public class BlockEdit
         }
     }
 
-    private boolean isOreNotDrawn()
+    private boolean isOreNotDrawn(Set<Long> drawnOrePositions)
     {
-        for (BlockEdit blockEdit : playereditSet._edits)
-        {
-            if (Configs.Outlines.ONLY_ORE_BLOCK.getBooleanValue() && blockEdit.x == x && blockEdit.y == y && blockEdit.z == z && blockEdit.drawn)
-            {
-                return this == blockEdit;
-            }
-        }
-
-        return true;
+        if (!Configs.Outlines.ONLY_ORE_BLOCK.getBooleanValue()) return true;
+        long packed = ((long)(x & 0x3FFFFFF)) | (((long)(z & 0x3FFFFFF)) << 26) | (((long)(y & 0xFFF)) << 52);
+        return drawnOrePositions.add(packed);
     }
 
     public boolean isCreated()
