@@ -154,10 +154,7 @@ public class EditSelection
                     builtBuffer.close();
                 }
             } catch (Exception e) {
-                if (Configs.Generic.DEBUG.getBooleanValue())
-                {
-                    Watson.logger.warn("Failed to draw selection buffer", e);
-                }
+                Watson.logger.warn("Failed to draw selection buffer", e);
             }
 
             if (_selection.playereditSet != null)
@@ -176,10 +173,7 @@ public class EditSelection
                             builtBuffer.close();
                         }
                     } catch (Exception e) {
-                        if (Configs.Generic.DEBUG.getBooleanValue())
-                        {
-                            Watson.logger.warn("Failed to draw selection link buffer", e);
-                        }
+                        Watson.logger.warn("Failed to draw selection link buffer", e);
                     }
                 }
             }

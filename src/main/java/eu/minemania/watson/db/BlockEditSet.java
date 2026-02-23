@@ -283,10 +283,7 @@ public class BlockEditSet
                     builtBuffer.close();
                 }
             } catch (Exception e) {
-                if (Configs.Generic.DEBUG.getBooleanValue())
-                {
-                    Watson.logger.warn("Failed to draw vector buffer", e);
-                }
+                Watson.logger.warn("Failed to draw vector buffer", e);
             }
         }
     }
