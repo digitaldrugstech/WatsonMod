@@ -4,8 +4,13 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
 import eu.minemania.watson.Watson;
 import eu.minemania.watson.chat.IChatHandler;
 import eu.minemania.watson.chat.IMatchedChatHandler;
@@ -15,31 +20,39 @@ import net.minecraft.text.MutableText;
 
 public class Analysis implements IChatHandler
 {
-    protected static ListMultimap<String, IMatchedChatHandler> m = ArrayListMultimap.create();
+    protected static final ListMultimap<String, IMatchedChatHandler> m =
+            Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
+    private static final ConcurrentHashMap<String, Pattern> PATTERN_CACHE = new ConcurrentHashMap<>();
     public static int colorBlock = 0;
+
+    private static final Pattern FORMATTING_PATTERN = Pattern.compile("\u00A7.");
 
     public boolean dispatchMatchedChat(MutableText chat)
     {
         String unformatted = chat.getString();
-        unformatted = unformatted.replaceAll("\u00A7.", "");
+        unformatted = FORMATTING_PATTERN.matcher(unformatted).replaceAll("");
         if (Configs.Generic.DEBUG.getBooleanValue())
         {
             Watson.logger.info("unformatted: " + unformatted);
         }
-        for (Entry<String, IMatchedChatHandler> entry : m.entries())
+        synchronized (m)
         {
-            if (Configs.Generic.DEBUG.getBooleanValue())
-            {
-                Watson.logger.info("key: " + entry.getKey());
-            }
-            Matcher m = Pattern.compile(entry.getKey()).matcher(unformatted);
-            if (m.find())
+            for (Entry<String, IMatchedChatHandler> entry : m.entries())
             {
                 if (Configs.Generic.DEBUG.getBooleanValue())
                 {
-                    Watson.logger.info("key matched: " + entry.getKey());
+                    Watson.logger.info("key: " + entry.getKey());
                 }
-                return entry.getValue().onMatchedChat(chat, m);
+                Pattern pattern = PATTERN_CACHE.computeIfAbsent(entry.getKey(), Pattern::compile);
+                Matcher matcher = pattern.matcher(unformatted);
+                if (matcher.find())
+                {
+                    if (Configs.Generic.DEBUG.getBooleanValue())
+                    {
+                        Watson.logger.info("key matched: " + entry.getKey());
+                    }
+                    return entry.getValue().onMatchedChat(chat, matcher);
+                }
             }
         }
         return true;
@@ -52,11 +65,22 @@ public class Analysis implements IChatHandler
 
     public static void removeMatchedChatHandler(ConfigString pattern)
     {
-        for (IMatchedChatHandler handler : m.get(pattern.getOldStringValue()))
+        String oldKey = pattern.getOldStringValue();
+        String newKey = pattern.getStringValue();
+        if (oldKey.equals(newKey))
         {
-            m.put(pattern.getStringValue(), handler);
+            return;
         }
-        m.removeAll(pattern.getOldStringValue());
+        synchronized (m)
+        {
+            List<IMatchedChatHandler> handlers = new ArrayList<>(m.get(oldKey));
+            m.removeAll(oldKey);
+            for (IMatchedChatHandler handler : handlers)
+            {
+                m.put(newKey, handler);
+            }
+        }
+        PATTERN_CACHE.remove(oldKey);
     }
 
     @Override

@@ -44,7 +44,7 @@ import net.minecraft.text.MutableText;
  */
 public class CoreProtectAnalysis extends Analysis
 {
-    public static boolean isCpMessage = false;
+    public static volatile boolean isCpMessage = false;
     protected boolean _isLookup = false;
     protected boolean _firstInspectorResult = false;
     protected boolean _lookupDetails = false;
@@ -58,7 +58,7 @@ public class CoreProtectAnalysis extends Analysis
     protected WatsonBlock _block;
     protected int _loop;
 
-    protected static boolean _looping;
+    protected static volatile boolean _looping;
 
     public CoreProtectAnalysis()
     {

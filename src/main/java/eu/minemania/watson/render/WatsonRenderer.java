@@ -33,6 +33,10 @@ public class WatsonRenderer
         {
             EditSelection selection = DataManager.getEditSelection();
             BlockEditSet edits = selection.getBlockEditSet();
+            if (edits == null)
+            {
+                return;
+            }
             Matrix4fStack matrixStack = RenderSystem.getModelViewStack();
             matrixStack.pushMatrix();
 

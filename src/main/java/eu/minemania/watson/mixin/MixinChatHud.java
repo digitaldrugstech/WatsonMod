@@ -31,6 +31,10 @@ public abstract class MixinChatHud
             Highlight.toggleReturnBoolean();
             return componentln;
         }
+        if (!(componentln instanceof MutableText))
+        {
+            return componentln;
+        }
         boolean allowChat = ChatProcessor.getInstance().onChat((MutableText) componentln);
         if (allowChat)
         {

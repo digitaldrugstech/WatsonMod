@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import eu.minemania.watson.config.Configs;
 import eu.minemania.watson.data.DataManager;
+import eu.minemania.watson.db.BlockEditSet;
 import eu.minemania.watson.db.LocalAnnotation;
 import fi.dy.masa.malilib.render.RenderUtils;
 import net.minecraft.client.MinecraftClient;
@@ -65,8 +66,12 @@ public class OverlayRenderer
             }
         }
 
-        DataManager.getEditSelection().getBlockEditSet().getOreDB().drawDepositLabels();
-        DataManager.getEditSelection().getBlockEditSet().drawAnnotations();
+        BlockEditSet blockEditSet = DataManager.getEditSelection().getBlockEditSet();
+        if (blockEditSet != null)
+        {
+            blockEditSet.getOreDB().drawDepositLabels();
+            blockEditSet.drawAnnotations();
+        }
         LocalAnnotation.getInstance().drawAnnotations();
     }
 
