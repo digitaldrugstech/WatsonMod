@@ -60,6 +60,8 @@ public class CoreProtectAnalysis extends Analysis
 
     protected static volatile boolean _looping;
 
+    private static final java.util.regex.Pattern FORMATTING_PATTERN = java.util.regex.Pattern.compile("\u00A7.");
+
     public CoreProtectAnalysis()
     {
         addMatchedChatHandler(Configs.Analysis.CP_BUSY, (chat, m) -> {
@@ -120,7 +122,7 @@ public class CoreProtectAnalysis extends Analysis
         HoverEvent hover = chat.getSiblings().get(0).getStyle().getHoverEvent();
         if (hover instanceof HoverEvent.ShowText showText)
         {
-            String text = showText.value().getString().replaceAll("\u00A7.", "");
+            String text = FORMATTING_PATTERN.matcher(showText.value().getString()).replaceAll("");
             _millis = TimeStamp.parseTimeExpression(text, m.group(1));
         }
         else
@@ -167,7 +169,7 @@ public class CoreProtectAnalysis extends Analysis
         HoverEvent hover = chat.getSiblings().get(0).getStyle().getHoverEvent();
         if (hover instanceof HoverEvent.ShowText showText)
         {
-            String text = showText.value().getString().replaceAll("\u00A7.", "");
+            String text = FORMATTING_PATTERN.matcher(showText.value().getString()).replaceAll("");
             _millis = TimeStamp.parseTimeExpression(text, m.group(1));
         }
         else
@@ -193,7 +195,7 @@ public class CoreProtectAnalysis extends Analysis
         HoverEvent hover = chat.getSiblings().get(0).getStyle().getHoverEvent();
         if (hover instanceof HoverEvent.ShowText showText)
         {
-            String text = showText.value().getString().replaceAll("\u00A7.", "");
+            String text = FORMATTING_PATTERN.matcher(showText.value().getString()).replaceAll("");
             _millis = TimeStamp.parseTimeExpression(text, m.group(1));
         }
         else

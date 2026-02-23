@@ -91,7 +91,7 @@ public class IntCoord
     @Override
     public int hashCode()
     {
-        return (_y << 24) ^ _x ^ (_z << 15);
+        return java.util.Objects.hash(_x, _y, _z, _world);
     }
 
     @Override
