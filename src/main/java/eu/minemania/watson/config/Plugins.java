@@ -10,7 +10,8 @@ public enum Plugins implements IConfigOptionListEntry
     LOGBLOCK("LogBlock", "watson.label.plugin.logblock"),
     MODMODE("ModMode", "watson.label.plugin.modmode"),
     PRISM("Prism", "watson.label.plugin.prism"),
-    LEDGER("Ledger", "watson.label.plugin.ledger");
+    LEDGER("Ledger", "watson.label.plugin.ledger"),
+    AUXPROTECT("AuxProtect", "watson.label.plugin.auxprotect");
 
     private final String configString;
     private final String translationKey;

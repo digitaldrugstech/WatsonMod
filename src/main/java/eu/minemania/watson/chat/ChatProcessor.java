@@ -21,6 +21,8 @@ public class ChatProcessor
         addChatHandler(new CoreProtectAnalysis());
 
         addChatHandler(new PrismAnalysis());
+
+        addChatHandler(new AuxProtectAnalysis());
     }
 
     public static ChatProcessor getInstance()

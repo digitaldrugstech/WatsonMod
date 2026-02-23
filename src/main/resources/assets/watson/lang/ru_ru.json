@@ -181,6 +181,7 @@
   "watson.label.plugin.logblock": "LogBlock",
   "watson.label.plugin.modmode": "ModMode",
   "watson.label.plugin.prism": "Prism",
+  "watson.label.plugin.auxprotect": "AuxProtect",
   "watson.message.anno.annot": "(%d) (%d,%d,%d,%s) %s",
   "watson.message.anno.clear": "%d аннотация очищены",
   "watson.message.anno.list.size": "%d аннотация",
