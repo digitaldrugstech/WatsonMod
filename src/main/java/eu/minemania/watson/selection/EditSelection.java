@@ -8,7 +8,7 @@ import eu.minemania.watson.db.BlockEditComparator;
 import eu.minemania.watson.db.BlockEditSet;
 import eu.minemania.watson.db.PlayereditSet;
 import eu.minemania.watson.render.RenderUtils;
-import eu.minemania.watson.render.WatsonRenderLayers;
+import fi.dy.masa.malilib.util.data.Color4f;
 import fi.dy.masa.malilib.util.WorldUtils;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.render.BuiltBuffer;
@@ -38,7 +38,7 @@ public class EditSelection
     protected boolean _selectionChanged;
     protected BlockEdit _selection;
     protected HashMap<String, Object> _variables = new HashMap<>();
-    protected static HashMap<String, BlockEditSet> _edits = new HashMap<>();
+    protected static final java.util.concurrent.ConcurrentHashMap<String, BlockEditSet> _edits = new java.util.concurrent.ConcurrentHashMap<>();
     protected Calendar _calendar = Calendar.getInstance();
     private static volatile ReplayThread thread;
 
@@ -131,51 +131,31 @@ public class EditSelection
     {
         if (_selection != null && Configs.Edits.SELECTION_SHOWN.getBooleanValue() && (DataManager.getWorldPlugin().isEmpty() || DataManager.getWorldPlugin().equals(_selection.world)))
         {
+            Color4f selColor = new Color4f(1f, 0f, 1f, 0.5f);
             Tessellator tesselator = Tessellator.getInstance();
             BufferBuilder buffer = RenderUtils.startDrawingLines(tesselator);
-            BuiltBuffer builtBuffer;
 
             final float halfSize = 0.3f;
             float x = _selection.x + 0.5f;
             float y = _selection.y + 0.5f;
             float z = _selection.z + 0.5f;
-            buffer.vertex(x - halfSize, y, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0).lineWidth(2.5f);
-            buffer.vertex(x + halfSize, y, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0).lineWidth(2.5f);
-            buffer.vertex(x, y - halfSize, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0).lineWidth(2.5f);
-            buffer.vertex(x, y + halfSize, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0).lineWidth(2.5f);
-            buffer.vertex(x, y, z - halfSize).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0).lineWidth(2.5f);
-            buffer.vertex(x, y, z + halfSize).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0).lineWidth(2.5f);
-            try {
-                builtBuffer = buffer.endNullable();
-                if (builtBuffer != null)
-                {
-                    WatsonRenderLayers.getNoDepthLinesLayer().draw(builtBuffer);
-                    builtBuffer.close();
-                }
-            } catch (Exception e) {
-                Watson.logger.warn("Failed to draw selection buffer", e);
-            }
+            RenderUtils.addVertex(buffer, x - halfSize, y, z, selColor);
+            RenderUtils.addVertex(buffer, x + halfSize, y, z, selColor);
+            RenderUtils.addVertex(buffer, x, y - halfSize, z, selColor);
+            RenderUtils.addVertex(buffer, x, y + halfSize, z, selColor);
+            RenderUtils.addVertex(buffer, x, y, z - halfSize, selColor);
+            RenderUtils.addVertex(buffer, x, y, z + halfSize, selColor);
 
             if (_selection.playereditSet != null)
             {
                 BlockEdit previous = _selection.playereditSet.getEditBefore(_selection);
                 if (previous != null)
                 {
-                    buffer = RenderUtils.startDrawingLines(tesselator);
-                    buffer.vertex(previous.x + 0.5f, previous.y + 0.5f, previous.z + 0.5f).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0).lineWidth(2.5f);
-                    buffer.vertex(x, y, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0).lineWidth(2.5f);
-                    try {
-                        builtBuffer = buffer.endNullable();
-                        if (builtBuffer != null)
-                        {
-                            WatsonRenderLayers.getNoDepthLinesLayer().draw(builtBuffer);
-                            builtBuffer.close();
-                        }
-                    } catch (Exception e) {
-                        Watson.logger.warn("Failed to draw selection link buffer", e);
-                    }
+                    RenderUtils.addVertex(buffer, previous.x + 0.5f, previous.y + 0.5f, previous.z + 0.5f, selColor);
+                    RenderUtils.addVertex(buffer, x, y, z, selColor);
                 }
             }
+            RenderUtils.submitBuffer(buffer);
         }
     }
 

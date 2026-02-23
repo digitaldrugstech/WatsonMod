@@ -42,7 +42,6 @@ public class HighlightCommand extends WatsonCommandBase
         dispatcher.register(highlight);
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private static int help(CommandContext<ServerCommandSource> context)
     {
         if (!Configs.Highlights.USE_CHAT_HIGHLIGHTS.getBooleanValue())
@@ -50,30 +49,7 @@ public class HighlightCommand extends WatsonCommandBase
             InfoUtils.showInGameMessage(MessageType.INFO, "watson.message.highlight.disabled");
             return 1;
         }
-        int cmdCount = 0;
-        // Cast to raw CommandDispatcher to avoid checkcast of ClientCommandSource to ServerCommandSource.
-        // Watson's commands use the default requirement (s -> true) which ignores the source, so null is safe.
-        CommandDispatcher rawDispatcher = Command.commandDispatcher;
-        for (Object child : rawDispatcher.getRoot().getChildren())
-        {
-            CommandNode<ServerCommandSource> command = (CommandNode<ServerCommandSource>) child;
-            String cmdName = command.getName();
-            if (ClientCommandManager.isClientSideCommand(cmdName))
-            {
-                Map<CommandNode<ServerCommandSource>, String> usage = rawDispatcher.getSmartUsage(command, null);
-                for (String u : usage.values())
-                {
-                    ClientCommandManager.sendFeedback(Text.literal("/" + cmdName + " " + u));
-                }
-                cmdCount += usage.size();
-                if (usage.size() == 0)
-                {
-                    ClientCommandManager.sendFeedback(Text.literal("/" + cmdName));
-                    cmdCount++;
-                }
-            }
-        }
-        return cmdCount;
+        return printCommandUsage();
     }
 
     private static int list(CommandContext<ServerCommandSource> context)

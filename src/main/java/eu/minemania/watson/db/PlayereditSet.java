@@ -111,15 +111,7 @@ public class PlayereditSet
             }
         }
 
-        try {
-            BuiltBuffer builtBuffer = buffer.endNullable();
-            if (builtBuffer != null) {
-                WatsonRenderLayers.getNoDepthLinesLayer().draw(builtBuffer);
-                builtBuffer.close();
-            }
-        } catch (Exception e) {
-            Watson.logger.warn("Failed to draw outline buffer", e);
-        }
+        RenderUtils.submitBuffer(buffer);
     }
 
     public synchronized void drawVectors(int intcolor, BufferBuilder buffer)

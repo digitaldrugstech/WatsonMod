@@ -193,7 +193,7 @@ public class LogBlockAnalysis extends Analysis
             }
             if (DataManager.getFilters().isAcceptedPlayer(player))
             {
-                Color4f color = type.getOverrideColor() != Color4f.ZERO && type.getOverrideColor() != null ? type.getOverrideColor() : type.getColor();
+                Color4f color = type.getEffectiveColor();
                 Analysis.colorBlock = color != null ? color.intValue : 0;
                 BlockEdit edit = new BlockEdit(millis, player, action, coordX, coordY, coordZ, type, _world, count);
                 SyncTaskQueue.getInstance().addTask(new AddBlockEditTask(edit, _expectingFirstEdit));

@@ -139,7 +139,7 @@ public class CoreProtectAnalysis extends Analysis
             _loop = Integer.parseInt(m.group(5));
         }
         _block = WatsonBlockRegistery.getInstance().getWatsonBlockByName(block);
-        Color4f color = _block.getOverrideColor() != Color4f.ZERO && _block.getOverrideColor() != null ? _block.getOverrideColor() : _block.getColor();
+        Color4f color = _block.getEffectiveColor();
         Analysis.colorBlock = color != null ? color.intValue : 0;
         if (_isLookup)
         {
@@ -181,7 +181,7 @@ public class CoreProtectAnalysis extends Analysis
         String block = "minecraft:player";
         _loop = 1;
         _block = WatsonBlockRegistery.getInstance().getWatsonBlockByName(block);
-        Color4f color = _block.getOverrideColor() != Color4f.ZERO && _block.getOverrideColor() != null ? _block.getOverrideColor() : _block.getColor();
+        Color4f color = _block.getEffectiveColor();
         Analysis.colorBlock = color != null ? color.intValue : 0;
         // Record that we can use these details at the next
         // coreprotect.lookupcoords only.

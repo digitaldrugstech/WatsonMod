@@ -26,6 +26,23 @@ public class RenderUtils
         buffer.vertex(x, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0).lineWidth(LINE_WIDTH);
     }
 
+    public static void submitBuffer(BufferBuilder buffer)
+    {
+        try
+        {
+            BuiltBuffer builtBuffer = buffer.endNullable();
+            if (builtBuffer != null)
+            {
+                WatsonRenderLayers.getNoDepthLinesLayer().draw(builtBuffer);
+                builtBuffer.close();
+            }
+        }
+        catch (Exception e)
+        {
+            eu.minemania.watson.Watson.logger.warn("Failed to submit render buffer", e);
+        }
+    }
+
     //START TEMP MALILIB
     /**
      * Assumes a BufferBuilder in GL_LINES mode has been initialized

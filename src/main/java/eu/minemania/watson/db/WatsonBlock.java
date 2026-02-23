@@ -39,6 +39,16 @@ public final class WatsonBlock
         return this.overrideColor;
     }
 
+    public Color4f getEffectiveColor()
+    {
+        Color4f oc = this.overrideColor;
+        if (oc != null && oc != Color4f.ZERO)
+        {
+            return oc;
+        }
+        return this.color;
+    }
+
     public void setLineWidth(float lineWidth)
     {
         this.lineWidth = lineWidth;

@@ -268,23 +268,13 @@ public class BlockEditSet
         {
             Tessellator tessellator = Tessellator.getInstance();
             BufferBuilder buffer = RenderUtils.startDrawingLines(tessellator);
-            BuiltBuffer builtBuffer;
             int nextColorIndex1 = 0;
             for (PlayereditSet editsForPlayer : playerEdits.values())
             {
                 editsForPlayer.drawVectors(OverlayRenderer.KELLY_COLORS[nextColorIndex1], buffer);
                 nextColorIndex1 = (nextColorIndex1 + 1) % OverlayRenderer.KELLY_COLORS.length;
             }
-            try {
-                builtBuffer = buffer.endNullable();
-                if (builtBuffer != null)
-                {
-                    WatsonRenderLayers.getNoDepthLinesLayer().draw(builtBuffer);
-                    builtBuffer.close();
-                }
-            } catch (Exception e) {
-                Watson.logger.warn("Failed to draw vector buffer", e);
-            }
+            RenderUtils.submitBuffer(buffer);
         }
     }
 

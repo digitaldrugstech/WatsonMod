@@ -23,7 +23,7 @@ public class Analysis implements IChatHandler
     protected static final ListMultimap<String, IMatchedChatHandler> m =
             Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
     private static final ConcurrentHashMap<String, Pattern> PATTERN_CACHE = new ConcurrentHashMap<>();
-    public static int colorBlock = 0;
+    public static volatile int colorBlock = 0;
 
     private static final Pattern FORMATTING_PATTERN = Pattern.compile("\u00A7.");
 

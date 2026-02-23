@@ -77,7 +77,7 @@ public class BlockEdit
 
     private void renderBlocks(BufferBuilder buffer, Block blocks, Set<Long> drawnOrePositions)
     {
-        Color4f color = block.getOverrideColor() != Color4f.ZERO && block.getOverrideColor() != null ? block.getOverrideColor() : block.getColor();
+        Color4f color = block.getEffectiveColor();
         if (!block.getName().equals("minecraft:grass") && !block.getName().equals("minecraft:water") &&
                 !block.getName().equals("minecraft:lava"))
         {
@@ -131,7 +131,7 @@ public class BlockEdit
     private void renderEntities(BufferBuilder buffer)
     {
         Optional<EntityType<?>> entity = EntityType.get(block.getName());
-        Color4f color = block.getOverrideColor() != Color4f.ZERO && block.getOverrideColor() != null ? block.getOverrideColor() : block.getColor();
+        Color4f color = block.getEffectiveColor();
         if (entity.isPresent())
         {
             if (block.getName().equals("minecraft:item_frame") || block.getName().equals("minecraft:painting"))
