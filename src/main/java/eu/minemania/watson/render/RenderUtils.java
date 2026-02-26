@@ -1,19 +1,15 @@
 package eu.minemania.watson.render;
 
-import java.util.List;
-
-import com.mojang.blaze3d.vertex.VertexFormat;
 import fi.dy.masa.malilib.util.data.Color4f;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.*;
-import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.render.model.BlockStateModel;
 import net.minecraft.util.math.*;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.EmptyBlockView;
 
 public class RenderUtils
 {
-    private static final Random RAND = Random.create();
     private static final float LINE_WIDTH = 2.5f;
 
     public static BufferBuilder startDrawingLines(Tessellator tessellator)
@@ -308,11 +304,26 @@ public class RenderUtils
     }
 
     /**
-     * Assumes a BufferBuilder in the GL_LINES mode has been initialized
+     * Draws outline matching the block's VoxelShape (collision/outline shape).
+     * Falls back to full block outline if shape is empty.
      */
     public static void drawBlockModelOutlinesBatched(BlockStateModel model, BlockState state, BlockPos pos, Color4f color, BufferBuilder buffer)
     {
-        // 1.21.11 rendering internals changed; use a full block outline fallback.
-        drawFullBlockOutlinesBatched(pos.getX(), pos.getY(), pos.getZ(), color, buffer);
+        VoxelShape shape = state.getOutlineShape(EmptyBlockView.INSTANCE, pos);
+        if (shape.isEmpty())
+        {
+            drawFullBlockOutlinesBatched(pos.getX(), pos.getY(), pos.getZ(), color, buffer);
+            return;
+        }
+
+        float px = pos.getX();
+        float py = pos.getY();
+        float pz = pos.getZ();
+
+        shape.forEachBox((minX, minY, minZ, maxX, maxY, maxZ) ->
+                drawBoxAllEdgesBatchedLines(
+                        px + (float) minX, py + (float) minY, pz + (float) minZ,
+                        px + (float) maxX, py + (float) maxY, pz + (float) maxZ,
+                        color, buffer));
     }
 }
