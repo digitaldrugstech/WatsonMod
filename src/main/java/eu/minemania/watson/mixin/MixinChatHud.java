@@ -1,5 +1,8 @@
 package eu.minemania.watson.mixin;
 
+import eu.minemania.watson.analysis.Analysis;
+import eu.minemania.watson.analysis.CoreProtectAnalysis;
+import eu.minemania.watson.config.Plugins;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.TranslatableTextContent;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,14 +25,54 @@ public abstract class MixinChatHud
     private Text chatHighlighter(Text componentln)
     {
         delete = false;
+        Analysis.colorBlock = 0;
         if (Highlight.getReturnBoolean())
         {
             Highlight.toggleReturnBoolean();
             return componentln;
         }
+        if (!(componentln instanceof MutableText))
+        {
+            return componentln;
+        }
         boolean allowChat = ChatProcessor.getInstance().onChat((MutableText) componentln);
         if (allowChat)
         {
+            if (Configs.Plugin.PLUGIN.getOptionListValue() != Plugins.NULL &&
+                Configs.Highlights.USE_CUSTOM_ROLLED_BACK_TEXT_COLOR.getBooleanValue() &&
+                CoreProtectAnalysis.isCpMessage
+            ) {
+                if (componentln instanceof MutableText && componentln.getString().contains("§m"))
+                {
+                    MutableText newComponentln = MutableText.of(componentln.getContent());
+                    newComponentln.setStyle(componentln.getStyle());
+                    for (Text sibling : componentln.getSiblings())
+                    {
+                        if (sibling instanceof MutableText && ((MutableText) sibling).getString().contains("§m"))
+                        {
+                            if (sibling.getString().contains("§f§m") || sibling.getString().contains("§m§f"))
+                            {
+                                sibling = Text.of(sibling.getString().replaceAll("§f", ""));
+                            }
+                            ((MutableText) sibling).setStyle(sibling.getStyle().withColor(Configs.Highlights.ROLLED_BACK_TEXT_COLOR.getIntegerValue()));
+                        }
+                        newComponentln.append(sibling);
+                    }
+                    componentln = newComponentln;
+                }
+            }
+            if (Configs.Highlights.COLOR_BLOCK_CHAT.getBooleanValue() && componentln instanceof MutableText && Analysis.colorBlock != 0)
+            {
+                MutableText newComponentln = MutableText.of(componentln.getContent());
+                newComponentln.setStyle(componentln.getStyle());
+                for (Text sibling : componentln.getSiblings())
+                {
+                    newComponentln.append(sibling);
+                }
+                MutableText colorBlockText = Text.literal(" ⬤").withColor(Analysis.colorBlock);
+                newComponentln.append(colorBlockText);
+                componentln = newComponentln;
+            }
             if (Configs.Highlights.USE_CHAT_HIGHLIGHTS.getBooleanValue())
             {
                 if (componentln.getContent() instanceof TranslatableTextContent)

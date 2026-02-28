@@ -31,27 +31,7 @@ public class CalcCommand extends WatsonCommandBase
 
     private static int help(CommandContext<ServerCommandSource> context)
     {
-        int cmdCount = 0;
-        CommandDispatcher<ServerCommandSource> dispatcher = Command.commandDispatcher;
-        for (CommandNode<ServerCommandSource> command : dispatcher.getRoot().getChildren())
-        {
-            String cmdName = command.getName();
-            if (ClientCommandManager.isClientSideCommand(cmdName))
-            {
-                Map<CommandNode<ServerCommandSource>, String> usage = dispatcher.getSmartUsage(command, context.getSource());
-                for (String u : usage.values())
-                {
-                    ClientCommandManager.sendFeedback(Text.literal("/" + cmdName + " " + u));
-                }
-                cmdCount += usage.size();
-                if (usage.size() == 0)
-                {
-                    ClientCommandManager.sendFeedback(Text.literal("/" + cmdName));
-                    cmdCount++;
-                }
-            }
-        }
-        return cmdCount;
+        return printCommandUsage();
     }
 
     private static int calc(CommandContext<ServerCommandSource> context)
@@ -60,11 +40,11 @@ public class CalcCommand extends WatsonCommandBase
         StreamTokenizer tokenizer = makeTokenizer(commandLine);
         try
         {
-            localOutputT(context.getSource(), "watson.message.calc.calculation", commandLine, calculation(tokenizer));
+            localOutputT("watson.message.calc.calculation", commandLine, calculation(tokenizer));
         }
         catch (Exception e)
         {
-            localErrorT(context.getSource(), "watson.error.calc.calculation");
+            localErrorT("watson.error.calc.calculation");
         }
         return 1;
     }

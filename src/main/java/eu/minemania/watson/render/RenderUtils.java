@@ -1,26 +1,60 @@
 package eu.minemania.watson.render;
 
-import java.util.List;
-
-import com.mojang.blaze3d.systems.RenderSystem;
+import eu.minemania.watson.config.Configs;
 import fi.dy.masa.malilib.util.data.Color4f;
-import fi.dy.masa.malilib.util.PositionUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.*;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.util.math.*;
-import net.minecraft.util.math.random.Random;
-import org.joml.Vector3f;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.EmptyBlockView;
 
 public class RenderUtils
 {
-    private static final Random RAND = Random.create();
+    public static float getLineWidth()
+    {
+        float width = (float) Configs.Outlines.ORE_LINEWIDTH.getIntegerValue();
+        if (Configs.Outlines.ORE_OUTLINE_THICKER.getBooleanValue())
+        {
+            width *= 2f;
+        }
+        return width;
+    }
 
     public static BufferBuilder startDrawingLines(Tessellator tessellator)
     {
-        RenderSystem.setShader(GameRenderer::getRenderTypeLinesProgram);
-        return tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.LINES);
+        RenderLayer lineLayer = WatsonRenderLayers.getNoDepthLinesLayer();
+        return tessellator.begin(lineLayer.getDrawMode(), lineLayer.getVertexFormat());
+    }
+
+    /**
+     * Emits a line segment with correct normal (line direction) for the LINES shader.
+     * Uses the global oreLinewidth config setting.
+     */
+    public static void addLine(BufferBuilder buffer,
+                               float x1, float y1, float z1,
+                               float x2, float y2, float z2, Color4f color)
+    {
+        float lw = getLineWidth();
+        float dx = x2 - x1, dy = y2 - y1, dz = z2 - z1;
+        buffer.vertex(x1, y1, z1).color(color.r, color.g, color.b, color.a).normal(dx, dy, dz).lineWidth(lw);
+        buffer.vertex(x2, y2, z2).color(color.r, color.g, color.b, color.a).normal(dx, dy, dz).lineWidth(lw);
+    }
+
+    public static void submitBuffer(BufferBuilder buffer)
+    {
+        try
+        {
+            BuiltBuffer builtBuffer = buffer.endNullable();
+            if (builtBuffer != null)
+            {
+                WatsonRenderLayers.getNoDepthLinesLayer().draw(builtBuffer);
+                builtBuffer.close();
+            }
+        }
+        catch (Exception e)
+        {
+            eu.minemania.watson.Watson.logger.warn("Failed to submit render buffer", e);
+        }
     }
 
     //START TEMP MALILIB
@@ -55,84 +89,46 @@ public class RenderUtils
                                                    Color4f color, BufferBuilder buffer)
     {
         // West side
-        buffer.vertex(minX, minY, minZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(minX, minY, maxZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(minX, minY, maxZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(minX, maxY, maxZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(minX, maxY, maxZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(minX, maxY, minZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(minX, maxY, minZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(minX, minY, minZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
+        addLine(buffer, minX, minY, minZ, minX, minY, maxZ, color);
+        addLine(buffer, minX, minY, maxZ, minX, maxY, maxZ, color);
+        addLine(buffer, minX, maxY, maxZ, minX, maxY, minZ, color);
+        addLine(buffer, minX, maxY, minZ, minX, minY, minZ, color);
 
         // East side
-        buffer.vertex(maxX, minY, maxZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(maxX, minY, minZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(maxX, minY, minZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(maxX, maxY, minZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(maxX, maxY, minZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(maxX, maxY, maxZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(maxX, maxY, maxZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(maxX, minY, maxZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
+        addLine(buffer, maxX, minY, maxZ, maxX, minY, minZ, color);
+        addLine(buffer, maxX, minY, minZ, maxX, maxY, minZ, color);
+        addLine(buffer, maxX, maxY, minZ, maxX, maxY, maxZ, color);
+        addLine(buffer, maxX, maxY, maxZ, maxX, minY, maxZ, color);
 
         // North side (don't repeat the vertical lines that are done by the east/west sides)
-        buffer.vertex(maxX, minY, minZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(minX, minY, minZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(minX, maxY, minZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(maxX, maxY, minZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
+        addLine(buffer, maxX, minY, minZ, minX, minY, minZ, color);
+        addLine(buffer, minX, maxY, minZ, maxX, maxY, minZ, color);
 
         // South side (don't repeat the vertical lines that are done by the east/west sides)
-        buffer.vertex(minX, minY, maxZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(maxX, minY, maxZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(maxX, maxY, maxZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(minX, maxY, maxZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
+        addLine(buffer, minX, minY, maxZ, maxX, minY, maxZ, color);
+        addLine(buffer, maxX, maxY, maxZ, minX, maxY, maxZ, color);
     }
     //END TEMP MALILIB
 
     public static void drawFullBlockOutlinesBatched(float x, float y, float z, Color4f color, BufferBuilder buffer)
     {
-        buffer.vertex(x, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + 1F, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
+        // Bottom face
+        addLine(buffer, x, y, z, x + 1F, y, z, color);
+        addLine(buffer, x, y, z, x, y, z + 1F, color);
+        addLine(buffer, x, y, z + 1F, x + 1F, y, z + 1F, color);
+        addLine(buffer, x + 1F, y, z, x + 1F, y, z + 1F, color);
 
-        buffer.vertex(x, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x, y, z + 1F).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
+        // Top face
+        addLine(buffer, x, y + 1F, z, x + 1F, y + 1F, z, color);
+        addLine(buffer, x, y + 1F, z, x, y + 1F, z + 1F, color);
+        addLine(buffer, x, y + 1F, z + 1F, x + 1F, y + 1F, z + 1F, color);
+        addLine(buffer, x + 1F, y + 1F, z, x + 1F, y + 1F, z + 1F, color);
 
-        buffer.vertex(x, y, z + 1F).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + 1F, y, z + 1F).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x + 1F, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + 1F, y, z + 1F).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x, y + 1F, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + 1F, y + 1F, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x, y + 1F, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x, y + 1F, z + 1F).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x, y + 1F, z + 1F).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + 1F, y + 1F, z + 1F).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x + 1F, y + 1F, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + 1F, y + 1F, z + 1F).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x, y + 1F, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x + 1F, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + 1F, y + 1F, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x, y, z + 1F).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x, y + 1F, z + 1F).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x + 1F, y, z + 1F).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + 1F, y + 1, z + 1F).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
+        // Vertical edges
+        addLine(buffer, x, y, z, x, y + 1F, z, color);
+        addLine(buffer, x + 1F, y, z, x + 1F, y + 1F, z, color);
+        addLine(buffer, x, y, z + 1F, x, y + 1F, z + 1F, color);
+        addLine(buffer, x + 1F, y, z + 1F, x + 1F, y + 1F, z + 1F, color);
     }
 
     public static void drawSpecialOutlinesBatched(float x, float y, float z, Color4f color, BufferBuilder buffer, boolean sign)
@@ -152,192 +148,94 @@ public class RenderUtils
             heightY = heightY - 0.3F;
         }
 
-        buffer.vertex(posX, posY, posZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(posX + widthX, posY, posZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
+        // Front face
+        addLine(buffer, posX, posY, posZ, posX + widthX, posY, posZ, color);
+        addLine(buffer, posX, posY + heightY, posZ, posX + widthX, posY + heightY, posZ, color);
+        addLine(buffer, posX, posY, posZ, posX, posY + heightY, posZ, color);
+        addLine(buffer, posX + widthX, posY, posZ, posX + widthX, posY + heightY, posZ, color);
 
-        buffer.vertex(posX, posY + heightY, posZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(posX + widthX, posY + heightY, posZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
+        // Back face
+        addLine(buffer, posX, posY, posZ + widthZ, posX + widthX, posY, posZ + widthZ, color);
+        addLine(buffer, posX, posY + heightY, posZ + widthZ, posX + widthX, posY + heightY, posZ + widthZ, color);
+        addLine(buffer, posX, posY, posZ + widthZ, posX, posY + heightY, posZ + widthZ, color);
+        addLine(buffer, posX + widthX, posY, posZ + widthZ, posX + widthX, posY + heightY, posZ + widthZ, color);
 
-        buffer.vertex(posX, posY, posZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(posX, posY + heightY, posZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(posX + widthX, posY, posZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(posX + widthX, posY + heightY, posZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(posX, posY, posZ + widthZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(posX + widthX, posY, posZ + widthZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(posX, posY + heightY, posZ + widthZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(posX + widthX, posY + heightY, posZ + widthZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(posX, posY, posZ + widthZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(posX, posY + heightY, posZ + widthZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(posX + widthX, posY, posZ + widthZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(posX + widthX, posY + heightY, posZ + widthZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(posX + widthX, posY, posZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(posX + widthX, posY, posZ + widthZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(posX, posY, posZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(posX, posY, posZ + widthZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(posX + widthX, posY + heightY, posZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(posX + widthX, posY + heightY, posZ + widthZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(posX, posY + heightY, posZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(posX, posY + heightY, posZ + widthZ).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
+        // Connecting edges
+        addLine(buffer, posX + widthX, posY, posZ, posX + widthX, posY, posZ + widthZ, color);
+        addLine(buffer, posX, posY, posZ, posX, posY, posZ + widthZ, color);
+        addLine(buffer, posX + widthX, posY + heightY, posZ, posX + widthX, posY + heightY, posZ + widthZ, color);
+        addLine(buffer, posX, posY + heightY, posZ, posX, posY + heightY, posZ + widthZ, color);
     }
 
     public static void drawBedOutlineBatched(float x, float y, float z, Color4f color, BufferBuilder buffer)
     {
-        float shortLength = 0.19f;
-        float reverseShortLength = 0.81f;
-        float otherSide = 1f;
-        float longHeight = 0.56f;
+        float s = 0.19f;
+        float rs = 0.81f;
+        float o = 1f;
+        float h = 0.56f;
 
-        //left front leg
-        buffer.vertex(x, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + shortLength, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
+        // Left front leg
+        addLine(buffer, x, y, z, x + s, y, z, color);
+        addLine(buffer, x, y, z, x, y, z + s, color);
+        addLine(buffer, x, y, z, x, y + h, z, color);
+        addLine(buffer, x + s, y, z, x + s, y + s, z, color);
+        addLine(buffer, x, y, z + s, x, y + s, z + s, color);
 
-        buffer.vertex(x, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x, y, z + shortLength).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
+        // Right front leg
+        addLine(buffer, x + rs, y, z, x + o, y, z, color);
+        addLine(buffer, x + o, y, z, x + o, y, z + s, color);
+        addLine(buffer, x + o, y, z, x + o, y + h, z, color);
+        addLine(buffer, x + rs, y, z, x + rs, y + s, z, color);
+        addLine(buffer, x + o, y, z + s, x + o, y + s, z + s, color);
 
-        buffer.vertex(x, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x, y + longHeight, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
+        // Left back leg
+        addLine(buffer, x, y, z + o, x + s, y, z + o, color);
+        addLine(buffer, x, y, z + o, x, y, z + rs, color);
+        addLine(buffer, x, y, z + o, x, y + h, z + o, color);
+        addLine(buffer, x + s, y, z + o, x + s, y + s, z + o, color);
+        addLine(buffer, x, y, z + rs, x, y + s, z + rs, color);
 
-        buffer.vertex(x + shortLength, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + shortLength, y + shortLength, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
+        // Right back leg
+        addLine(buffer, x + rs, y, z + o, x + o, y, z + o, color);
+        addLine(buffer, x + o, y, z + rs, x + o, y, z + o, color);
+        addLine(buffer, x + o, y, z + o, x + o, y + h, z + o, color);
+        addLine(buffer, x + rs, y, z + o, x + rs, y + s, z + o, color);
+        addLine(buffer, x + o, y, z + rs, x + o, y + s, z + rs, color);
 
-        buffer.vertex(x, y, z + shortLength).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x, y + shortLength, z + shortLength).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
+        // Middle connections
+        addLine(buffer, x + s, y + s, z, x + rs, y + s, z, color);
+        addLine(buffer, x, y + s, z + s, x, y + s, z + rs, color);
+        addLine(buffer, x + s, y + s, z + o, x + rs, y + s, z + o, color);
+        addLine(buffer, x + o, y + s, z + s, x + o, y + s, z + rs, color);
 
-        //right front leg
-        buffer.vertex(x + reverseShortLength, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + otherSide, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x + otherSide, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + otherSide, y, z + shortLength).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x + otherSide, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + otherSide, y + longHeight, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x + reverseShortLength, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + reverseShortLength, y + shortLength, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x + otherSide, y, z + shortLength).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + otherSide, y + shortLength, z + shortLength).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        //left back leg
-        buffer.vertex(x, y, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + shortLength, y, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x, y, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x, y, z + reverseShortLength).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x, y, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x, y + longHeight, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x + shortLength, y, z + 1).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + shortLength, y + shortLength, z + 1).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x, y, z + reverseShortLength).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x, y + shortLength, z + reverseShortLength).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        //right back leg
-        buffer.vertex(x + reverseShortLength, y, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + otherSide, y, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x + otherSide, y, z + reverseShortLength).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + otherSide, y, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x + otherSide, y, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + otherSide, y + longHeight, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x + reverseShortLength, y, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + reverseShortLength, y + shortLength, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x + otherSide, y, z + reverseShortLength).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + otherSide, y + shortLength, z + reverseShortLength).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        //middle connections
-        buffer.vertex(x + shortLength, y + shortLength, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + reverseShortLength, y + shortLength, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x, y + shortLength, z + shortLength).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x, y + shortLength, z + reverseShortLength).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x + shortLength, y + shortLength, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + reverseShortLength, y + shortLength, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x + otherSide, y + shortLength, z + shortLength).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + otherSide, y + shortLength, z + reverseShortLength).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        //top connections
-        buffer.vertex(x, y + longHeight, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + otherSide, y + longHeight, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x, y + longHeight, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x, y + longHeight, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x, y + longHeight, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + otherSide, y + longHeight, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-
-        buffer.vertex(x + otherSide, y + longHeight, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
-        buffer.vertex(x + otherSide, y + longHeight, z + otherSide).color(color.r, color.g, color.b, color.a).normal(0, 0, 0);
+        // Top connections
+        addLine(buffer, x, y + h, z, x + o, y + h, z, color);
+        addLine(buffer, x, y + h, z, x, y + h, z + o, color);
+        addLine(buffer, x, y + h, z + o, x + o, y + h, z + o, color);
+        addLine(buffer, x + o, y + h, z, x + o, y + h, z + o, color);
     }
 
     /**
-     * Assumes a BufferBuilder in the GL_LINES mode has been initialized
+     * Draws outline matching the block's VoxelShape (collision/outline shape).
+     * Falls back to full block outline if shape is empty.
      */
-    public static void drawBlockModelOutlinesBatched(BakedModel model, BlockState state, BlockPos pos, Color4f color, BufferBuilder buffer)
+    public static void drawBlockModelOutlinesBatched(BlockState state, BlockPos pos, Color4f color, BufferBuilder buffer)
     {
-        for (final Direction side : PositionUtils.ALL_DIRECTIONS)
+        VoxelShape shape = state.getOutlineShape(EmptyBlockView.INSTANCE, pos);
+        if (shape.isEmpty())
         {
-            renderModelQuadOutlines(pos, color, model.getQuads(state, side, RAND), buffer);
+            drawFullBlockOutlinesBatched(pos.getX(), pos.getY(), pos.getZ(), color, buffer);
+            return;
         }
 
-        renderModelQuadOutlines(pos, color, model.getQuads(state, null, RAND), buffer);
-    }
+        float px = pos.getX();
+        float py = pos.getY();
+        float pz = pos.getZ();
 
-    private static void renderModelQuadOutlines(BlockPos pos, Color4f color, List<BakedQuad> quads, BufferBuilder buffer)
-    {
-        for (BakedQuad quad : quads)
-        {
-            renderQuadOutlinesBatched(pos, color, quad, buffer);
-        }
-    }
-
-    private static void renderQuadOutlinesBatched(BlockPos pos, Color4f color, BakedQuad quad, BufferBuilder buffer)
-    {
-        final int x = pos.getX();
-        final int y = pos.getY();
-        final int z = pos.getZ();
-        int[] vertexData = quad.getVertexData();
-        Vec3i vec3i = quad.getFace().getVector();
-        Vector3f vec3f = new Vector3f(vec3i.getX(), vec3i.getY(), vec3i.getZ());
-        final int vertexSize = vertexData.length / 4;
-        float[] fx = new float[4];
-        float[] fy = new float[4];
-        float[] fz = new float[4];
-
-        for (int index = 0; index < 4; ++index)
-        {
-            fx[index] = x + Float.intBitsToFloat(vertexData[index * vertexSize]);
-            fy[index] = y + Float.intBitsToFloat(vertexData[index * vertexSize + 1]);
-            fz[index] = z + Float.intBitsToFloat(vertexData[index * vertexSize + 2]);
-        }
-
-        buffer.vertex(fx[0], fy[0], fz[0]).color(color.r, color.g, color.b, color.a).normal(vec3f.x, vec3f.y, vec3f.z);
-        buffer.vertex(fx[1], fy[1], fz[1]).color(color.r, color.g, color.b, color.a).normal(vec3f.x, vec3f.y, vec3f.z);
-
-        buffer.vertex(fx[1], fy[1], fz[1]).color(color.r, color.g, color.b, color.a).normal(vec3f.x, vec3f.y, vec3f.z);
-        buffer.vertex(fx[2], fy[2], fz[2]).color(color.r, color.g, color.b, color.a).normal(vec3f.x, vec3f.y, vec3f.z);
-
-        buffer.vertex(fx[2], fy[2], fz[2]).color(color.r, color.g, color.b, color.a).normal(vec3f.x, vec3f.y, vec3f.z);
-        buffer.vertex(fx[3], fy[3], fz[3]).color(color.r, color.g, color.b, color.a).normal(vec3f.x, vec3f.y, vec3f.z);
-
-        buffer.vertex(fx[3], fy[3], fz[3]).color(color.r, color.g, color.b, color.a).normal(vec3f.x, vec3f.y, vec3f.z);
-        buffer.vertex(fx[0], fy[0], fz[0]).color(color.r, color.g, color.b, color.a).normal(vec3f.x, vec3f.y, vec3f.z);
+        shape.forEachBox((minX, minY, minZ, maxX, maxY, maxZ) ->
+                drawBoxAllEdgesBatchedLines(
+                        px + (float) minX, py + (float) minY, pz + (float) minZ,
+                        px + (float) maxX, py + (float) maxY, pz + (float) maxZ,
+                        color, buffer));
     }
 }

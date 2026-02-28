@@ -59,7 +59,7 @@ public class ClientCommandManager
         ClientPlayerEntity player = mc.player;
         try
         {
-            return player.networkHandler.getCommandDispatcher().execute(reader, new FakeCommandSource(player));
+            return player.networkHandler.getCommandDispatcher().execute(reader, player.networkHandler.getCommandSource());
         }
         catch (CommandSyntaxException e)
         {
@@ -67,7 +67,7 @@ public class ClientCommandManager
             if (e.getInput() != null && e.getCursor() >= 0)
             {
                 int cursor = Math.min(e.getCursor(), e.getInput().length());
-                MutableText text = Text.literal("").formatted(Formatting.GRAY).styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command)));
+                MutableText text = Text.literal("").formatted(Formatting.GRAY).styled(style -> style.withClickEvent(new ClickEvent.SuggestCommand(command)));
                 if (cursor > 10)
                 {
                     text.append("...");
@@ -85,7 +85,7 @@ public class ClientCommandManager
         catch (Exception e)
         {
             MutableText error = Text.literal(e.getMessage() == null ? e.getClass().getName() : e.getMessage());
-            ClientCommandManager.sendError(Text.translatable("command.failed").styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, error))));
+            ClientCommandManager.sendError(Text.translatable("command.failed").styled(style -> style.withHoverEvent(new HoverEvent.ShowText(error))));
             e.printStackTrace();
         }
         return 1;

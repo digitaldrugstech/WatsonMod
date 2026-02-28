@@ -6,6 +6,7 @@ import eu.minemania.watson.analysis.CoreProtectAnalysis;
 import eu.minemania.watson.config.Configs;
 import eu.minemania.watson.data.DataManager;
 import eu.minemania.watson.render.OverlayRenderer;
+import eu.minemania.watson.selection.EditSelection;
 import fi.dy.masa.malilib.interfaces.IWorldLoadListener;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
@@ -26,6 +27,7 @@ public class WorldLoadListener implements IWorldLoadListener
             if (worldAfter == null)
             {
                 DataManager.reset(true);
+                EditSelection.clearAllEdits();
                 if (DataManager.getEditSelection().getSelection() != null)
                 {
                     DataManager.getEditSelection().clearBlockEditSet();

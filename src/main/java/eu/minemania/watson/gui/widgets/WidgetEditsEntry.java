@@ -16,10 +16,10 @@ import fi.dy.masa.malilib.gui.button.ButtonGeneric;
 import fi.dy.masa.malilib.gui.button.IButtonActionListener;
 import fi.dy.masa.malilib.gui.widgets.WidgetListEntrySortable;
 import fi.dy.masa.malilib.gui.widgets.WidgetSearchBar;
+import fi.dy.masa.malilib.render.GuiContext;
 import fi.dy.masa.malilib.render.RenderUtils;
 import fi.dy.masa.malilib.util.StringUtils;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.gui.Click;
 import net.minecraft.item.ItemStack;
 
 public class WidgetEditsEntry extends WidgetListEntrySortable<PlayereditEntry>
@@ -120,12 +120,6 @@ public class WidgetEditsEntry extends WidgetListEntrySortable<PlayereditEntry>
     }
 
     @Override
-    public boolean canSelectAt(int mouseX, int mouseY, int mouseButton)
-    {
-        return false;
-    }
-
-    @Override
     protected int getColumnPosX(int column)
     {
         int x1 = this.x + 4;
@@ -161,39 +155,35 @@ public class WidgetEditsEntry extends WidgetListEntrySortable<PlayereditEntry>
     }
 
     @Override
-    protected boolean onMouseClickedImpl(int mouseX, int mouseY, int mouseButton)
+    protected boolean onMouseClickedImpl(Click click, boolean isInsideWidget)
     {
-        if (super.onMouseClickedImpl(mouseX, mouseY, mouseButton))
+        if (super.onMouseClickedImpl(click, isInsideWidget))
         {
             return true;
         }
 
-        if (this.entry != null)
+        if (this.entry != null || click.button() != 0)
         {
             return false;
         }
 
-        int column = this.getMouseOverColumn(mouseX, mouseY);
+        int column = this.getMouseOverColumn((int) click.x(), (int) click.y());
 
         switch (column)
         {
-            case 0:
-                this.edits.setSortCriteria(SortCriteria.NAME);
-                break;
-            case 5:
-                this.edits.setSortCriteria(SortCriteria.COUNT_TOTAL);
-                break;
-            default:
+            case 0 -> this.edits.setSortCriteria(SortCriteria.NAME);
+            case 5 -> this.edits.setSortCriteria(SortCriteria.COUNT_TOTAL);
+            default -> {
                 return false;
+            }
         }
 
         this.listWidget.refreshEntries();
-
         return true;
     }
 
     @Override
-    public void render(int mouseX, int mouseY, boolean selected, DrawContext drawContext)
+    public void render(GuiContext guiContext, int mouseX, int mouseY, boolean selected)
     {
         if (this.header1 == null && (selected || this.isMouseOver(mouseX, mouseY)))
         {
@@ -222,50 +212,46 @@ public class WidgetEditsEntry extends WidgetListEntrySortable<PlayereditEntry>
             WidgetSearchBar widgetSearchBar = this.listWidget.getSearchBarWidget();
             if (widgetSearchBar != null && !widgetSearchBar.isSearchOpen())
             {
-                this.drawString(x1, y, color, this.header1, drawContext);
-                this.drawString(x2, y, color, this.header2, drawContext);
-                this.drawString(x3, y, color, this.header3, drawContext);
-                this.drawString(x4, y, color, this.header4, drawContext);
-                this.drawString(x5, y, color, this.header5, drawContext);
-                this.drawString(x6, y, color, this.header6, drawContext);
+                this.drawString(guiContext, x1, y, color, this.header1);
+                this.drawString(guiContext, x2, y, color, this.header2);
+                this.drawString(guiContext, x3, y, color, this.header3);
+                this.drawString(guiContext, x4, y, color, this.header4);
+                this.drawString(guiContext, x5, y, color, this.header5);
+                this.drawString(guiContext, x6, y, color, this.header6);
 
-                this.renderColumnHeader(mouseX, mouseY, Icons.ARROW_DOWN, Icons.ARROW_UP);
+                this.renderColumnHeader(guiContext, mouseX, mouseY, Icons.ARROW_DOWN, Icons.ARROW_UP);
             }
         }
         else if (this.entry != null)
         {
-            this.drawString(x1 + 20, y, color, this.entry.getStack().getName().getString(), drawContext);
-            this.drawString(x2, y, color, String.valueOf(this.entry.getCountBroken()), drawContext);
-            this.drawString(x3, y, color, String.valueOf(this.entry.getCountPlaced()), drawContext);
-            this.drawString(x4, y, color, String.valueOf(this.entry.getCountContAdded()), drawContext);
-            this.drawString(x5, y, color, String.valueOf(this.entry.getCountContRemoved()), drawContext);
-            this.drawString(x6, y, color, String.valueOf(this.entry.getCountTotal()), drawContext);
+            this.drawString(guiContext, x1 + 20, y, color, this.entry.getStack().getName().getString());
+            this.drawString(guiContext, x2, y, color, String.valueOf(this.entry.getCountBroken()));
+            this.drawString(guiContext, x3, y, color, String.valueOf(this.entry.getCountPlaced()));
+            this.drawString(guiContext, x4, y, color, String.valueOf(this.entry.getCountContAdded()));
+            this.drawString(guiContext, x5, y, color, String.valueOf(this.entry.getCountContRemoved()));
+            this.drawString(guiContext, x6, y, color, String.valueOf(this.entry.getCountTotal()));
 
-            MatrixStack matrixStack = drawContext.getMatrices();
-            matrixStack.push();
-            RenderUtils.enableDiffuseLightingGui3D();
+            var matrixStack = guiContext.getMatrices();
+            matrixStack.pushMatrix();
 
             y = this.y + 3;
             RenderUtils.drawRect(x1, y, 16, 16, 0x20FFFFFF);
-            drawContext.drawItem(this.entry.getStack(), x1, y);
+            guiContext.drawItem(this.entry.getStack(), x1, y);
 
-            RenderSystem.disableBlend();
-            RenderUtils.disableDiffuseLighting();
-            matrixStack.pop();
+            matrixStack.popMatrix();
 
-            super.render(mouseX, mouseY, selected, drawContext);
+            super.render(guiContext, mouseX, mouseY, selected);
         }
     }
 
     @Override
-    public void postRenderHovered(int mouseX, int mouseY, boolean selected, DrawContext drawContext)
+    public void postRenderHovered(GuiContext guiContext, int mouseX, int mouseY, boolean selected)
     {
-        MatrixStack matrixStack = drawContext.getMatrices();
+        var matrixStack = guiContext.getMatrices();
         if (this.entry != null)
         {
-            matrixStack.push();
-            matrixStack.translate(0, 0, 200);
-            RenderSystem.applyModelViewMatrix();
+            matrixStack.pushMatrix();
+            
 
             String header1 = GuiBase.TXT_BOLD + StringUtils.translate(HEADERS[0]);
             String header2 = GuiBase.TXT_BOLD + StringUtils.translate(HEADERS[5]);
@@ -290,26 +276,22 @@ public class WidgetEditsEntry extends WidgetListEntrySortable<PlayereditEntry>
             int x1 = x + 10;
             int x2 = x1 + w1 + 20;
 
-            RenderUtils.drawOutlinedBox(x, y, totalWidth, 60, 0xFF000000, GuiBase.COLOR_HORIZONTAL_BAR);
+            RenderUtils.drawOutlinedBox(guiContext, x, y, totalWidth, 60, 0xFF000000, GuiBase.COLOR_HORIZONTAL_BAR);
             y += 6;
             int y1 = y;
             y += 4;
 
-            this.drawString(x1, y, 0xFFFFFFFF, header1, drawContext);
-            this.drawString(x2 + 20, y, 0xFFFFFFFF, stackName, drawContext);
+            this.drawString(guiContext, x1, y, 0xFFFFFFFF, header1);
+            this.drawString(guiContext, x2 + 20, y, 0xFFFFFFFF, stackName);
             y += 16;
 
-            this.drawString(x1, y, 0xFFFFFFFF, header2, drawContext);
-            this.drawString(x2, y, 0xFFFFFFFF, strTotal, drawContext);
+            this.drawString(guiContext, x1, y, 0xFFFFFFFF, header2);
+            this.drawString(guiContext, x2, y, 0xFFFFFFFF, strTotal);
 
             RenderUtils.drawRect(x2, y1, 16, 16, 0x20FFFFFF);
 
-            RenderUtils.enableDiffuseLightingGui3D();
-
-            drawContext.drawItem(stack, x2, y1);
-
-            RenderUtils.disableDiffuseLighting();
-            matrixStack.pop();
+            guiContext.drawItem(stack, x2, y1);
+            matrixStack.popMatrix();
         }
     }
 
@@ -337,7 +319,7 @@ public class WidgetEditsEntry extends WidgetListEntrySortable<PlayereditEntry>
             if (this.type == ButtonType.BLOCKS)
             {
                 EditListBlockedit editList = new EditListBlockedit(this.entry.getBlocks(), true);
-                GuiBase.openGui(new GuiBlockeditData(editList, this.entry.getStack().getTranslationKey(), listWidget.getGuiParent()));
+                GuiBase.openGui(new GuiBlockeditData(editList, this.entry.getStack().getItem().getTranslationKey(), listWidget.getGuiParent()));
             }
         }
 
@@ -359,3 +341,4 @@ public class WidgetEditsEntry extends WidgetListEntrySortable<PlayereditEntry>
         }
     }
 }
+

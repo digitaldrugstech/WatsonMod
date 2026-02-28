@@ -1,6 +1,10 @@
 Watson Overview
 ===============
 
+> **digitaldrugstech fork** — ported to Fabric 1.21.11. Adds performance improvements, rendering fixes, and planned [AuxProtect](https://www.spigotmc.org/resources/auxprotect.99147/) support.
+>
+> Upstream: [vacla/Watson](https://github.com/vacla/watson1132) · API port base: [MaximPixel/Watson](https://github.com/MaximPixel/Watson/tree/pre-rewrite/fabric_1.21.11)
+
 # Malilib is required
 
 Watson is a Minecraft mod that displays LogBlock and CoreProtect logs in 3-D.  It also has some features to make moderation tasks, such as observing chat and managing screenshots, a little easier.  The current features of the mod are:

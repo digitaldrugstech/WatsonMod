@@ -49,27 +49,7 @@ public class HighlightCommand extends WatsonCommandBase
             InfoUtils.showInGameMessage(MessageType.INFO, "watson.message.highlight.disabled");
             return 1;
         }
-        int cmdCount = 0;
-        CommandDispatcher<ServerCommandSource> dispatcher = Command.commandDispatcher;
-        for (CommandNode<ServerCommandSource> command : dispatcher.getRoot().getChildren())
-        {
-            String cmdName = command.getName();
-            if (ClientCommandManager.isClientSideCommand(cmdName))
-            {
-                Map<CommandNode<ServerCommandSource>, String> usage = dispatcher.getSmartUsage(command, context.getSource());
-                for (String u : usage.values())
-                {
-                    ClientCommandManager.sendFeedback(Text.literal("/" + cmdName + " " + u));
-                }
-                cmdCount += usage.size();
-                if (usage.size() == 0)
-                {
-                    ClientCommandManager.sendFeedback(Text.literal("/" + cmdName));
-                    cmdCount++;
-                }
-            }
-        }
-        return cmdCount;
+        return printCommandUsage();
     }
 
     private static int list(CommandContext<ServerCommandSource> context)

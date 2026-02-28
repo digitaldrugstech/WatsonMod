@@ -101,6 +101,11 @@ public class ChatMessage
         }
     }
 
+    public void clearQueue()
+    {
+        _serverChatQueue.clear();
+    }
+
     public void processServerChatQueue()
     {
         if (!_serverChatQueue.isEmpty())

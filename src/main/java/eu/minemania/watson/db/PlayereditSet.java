@@ -3,13 +3,15 @@ package eu.minemania.watson.db;
 import java.io.PrintWriter;
 import java.util.*;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import eu.minemania.watson.Watson;
 import eu.minemania.watson.data.DataManager;
 import eu.minemania.watson.render.RenderUtils;
 import eu.minemania.watson.selection.PlayereditUtils;
 import net.minecraft.client.render.*;
 import eu.minemania.watson.config.Configs;
 import fi.dy.masa.malilib.util.data.Color4f;
+import net.minecraft.entity.Entity;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.math.Vec3d;
 
 public class PlayereditSet
@@ -84,28 +86,31 @@ public class PlayereditSet
 
     public synchronized void drawOutlines()
     {
-        if (isVisible())
-        {
-            for (BlockEdit edit : _edits)
-            {
-                if (DataManager.getWorldPlugin().isEmpty() || DataManager.getWorldPlugin().equals(edit.world))
-                {
-                    Tessellator tessellator = Tessellator.getInstance();
-                    BufferBuilder buffer = RenderUtils.startDrawingLines(tessellator);
-                    BuiltBuffer builtBuffer;
+        if (!isVisible()) return;
 
-                    PlayereditUtils.getInstance().getRevertAction(edit, 0, edit.drawOutline(buffer));
+        MinecraftClient mc = MinecraftClient.getInstance();
+        Entity camera = mc.getCameraEntity();
+        if (camera == null) return;
+        int viewDist = mc.options.getViewDistance().getValue() * 16;
+        double viewDistSq = (double) viewDist * viewDist;
 
-                    try {
-                        builtBuffer = buffer.end();
-                        BufferRenderer.drawWithGlobalProgram(builtBuffer);
-                        builtBuffer.close();
-                    } catch (Exception e) {
-                        // Ignored
-                    }
-                }
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = RenderUtils.startDrawingLines(tessellator);
+        Set<Long> drawnOrePositions = new HashSet<>();
+
+        for (BlockEdit edit : _edits) {
+            if (DataManager.getWorldPlugin().isEmpty() || DataManager.getWorldPlugin().equals(edit.world)) {
+                double dx = edit.x - camera.getX();
+                double dy = edit.y - camera.getY();
+                double dz = edit.z - camera.getZ();
+                if (dx * dx + dy * dy + dz * dz > viewDistSq) continue;
+
+                edit.drawOutline(buffer, drawnOrePositions);
+                PlayereditUtils.getInstance().getRevertAction(edit, 0, 1);
             }
         }
+
+        RenderUtils.submitBuffer(buffer);
     }
 
     public synchronized void drawVectors(int intcolor, BufferBuilder buffer)
@@ -153,9 +158,7 @@ public class PlayereditSet
                         double length = diff.length();
                         if (length >= (float) Configs.Edits.VECTOR_LENGTH.getDoubleValue())
                         {
-                            RenderSystem.lineWidth(2f);
-                            buffer.vertex((float) pPos.x, (float) pPos.y, (float) pPos.z).color(color.r, color.g, color.b, color.a).normal(0,0,0);
-                            buffer.vertex((float) nPos.x, (float) nPos.y, (float) nPos.z).color(color.r, color.g, color.b, color.a).normal(0,0,0);
+                            RenderUtils.addLine(buffer, (float) pPos.x, (float) pPos.y, (float) pPos.z, (float) nPos.x, (float) nPos.y, (float) nPos.z, color);
 
                             // Length from arrow tip to midpoint of vector as a fraction of
                             // the total vector length. Scale the arrow in proportion to the
@@ -187,14 +190,11 @@ public class PlayereditSet
                             Vec3d draw1 = new Vec3d(fin1.x * arrowScale * length, fin1.y * arrowScale * length, fin1.z * arrowScale * length);
                             Vec3d draw2 = new Vec3d(fin2.x * arrowScale * length, fin2.y * arrowScale * length, fin2.z * arrowScale * length);
                             // Draw four fins
-                            buffer.vertex((float) tip.x, (float) tip.y, (float) tip.z).color(color.r, color.g, color.b, color.a).normal(0,0,0);
-                            buffer.vertex((float) (tail.x + draw1.x), (float) (tail.y + draw1.y), (float) (tail.z + draw1.z)).color(color.r, color.g, color.b, color.a).normal(0,0,0);
-                            buffer.vertex((float) tip.x, (float) tip.y, (float) tip.z).color(color.r, color.g, color.b, color.a).normal(0,0,0);
-                            buffer.vertex((float) (tail.x - draw1.x), (float) (tail.y - draw1.y), (float) (tail.z - draw1.z)).color(color.r, color.g, color.b, color.a).normal(0,0,0);
-                            buffer.vertex((float) tip.x, (float) tip.y, (float) tip.z).color(color.r, color.g, color.b, color.a).normal(0,0,0);
-                            buffer.vertex((float) (tail.x + draw2.x), (float) (tail.y + draw2.y), (float) (tail.z + draw2.z)).color(color.r, color.g, color.b, color.a).normal(0,0,0);
-                            buffer.vertex((float) tip.x, (float) tip.y, (float) tip.z).color(color.r, color.g, color.b, color.a).normal(0,0,0);
-                            buffer.vertex((float) (tail.x - draw2.x), (float) (tail.y - draw2.y), (float) (tail.z - draw2.z)).color(color.r, color.g, color.b, color.a).normal(0,0,0);
+                            float tx = (float) tip.x, ty = (float) tip.y, tz = (float) tip.z;
+                            RenderUtils.addLine(buffer, tx, ty, tz, (float) (tail.x + draw1.x), (float) (tail.y + draw1.y), (float) (tail.z + draw1.z), color);
+                            RenderUtils.addLine(buffer, tx, ty, tz, (float) (tail.x - draw1.x), (float) (tail.y - draw1.y), (float) (tail.z - draw1.z), color);
+                            RenderUtils.addLine(buffer, tx, ty, tz, (float) (tail.x + draw2.x), (float) (tail.y + draw2.y), (float) (tail.z + draw2.z), color);
+                            RenderUtils.addLine(buffer, tx, ty, tz, (float) (tail.x - draw2.x), (float) (tail.y - draw2.y), (float) (tail.z - draw2.z), color);
                         }
                         prev = next;
                     }

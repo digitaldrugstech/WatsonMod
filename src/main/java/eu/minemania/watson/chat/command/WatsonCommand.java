@@ -988,26 +988,7 @@ public class WatsonCommand extends WatsonCommandBase
 
     private static int help(CommandContext<ServerCommandSource> context)
     {
-        int cmdCount = 0;
-        CommandDispatcher<ServerCommandSource> dispatcher = Command.commandDispatcher;
-        for (CommandNode<ServerCommandSource> command : dispatcher.getRoot().getChildren())
-        {
-            String cmdName = command.getName();
-            if (ClientCommandManager.isClientSideCommand(cmdName))
-            {
-                Map<CommandNode<ServerCommandSource>, String> usage = dispatcher.getSmartUsage(command, context.getSource());
-                for (String u : usage.values())
-                {
-                    ClientCommandManager.sendFeedback(Text.literal("/" + cmdName + " " + u));
-                }
-                cmdCount += usage.size();
-                if (usage.isEmpty())
-                {
-                    ClientCommandManager.sendFeedback(Text.literal("/" + cmdName));
-                    cmdCount++;
-                }
-            }
-        }
+        int cmdCount = printCommandUsage();
         return cmdCount;
     }
 
@@ -1038,11 +1019,11 @@ public class WatsonCommand extends WatsonCommandBase
             {
                 error = "radius";
             }
-            localErrorT(context.getSource(), "watson.error.command.replay." + error);
+            localErrorT("watson.error.command.replay." + error);
             return 0;
         }
 
-        DataManager.getEditSelection().replay(since, speed, radius, context.getSource());
+        DataManager.getEditSelection().replay(since, speed, radius);
         return 1;
     }
 

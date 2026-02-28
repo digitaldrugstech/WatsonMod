@@ -37,11 +37,17 @@ public class Screenshot
 
     public static void save(File file, MinecraftClient mc)
     {
-        NativeImage nativeImage = ScreenshotRecorder.takeScreenshot(mc.getFramebuffer());
+        final NativeImage[] holder = new NativeImage[1];
+        ScreenshotRecorder.takeScreenshot(mc.getFramebuffer(), image -> holder[0] = image);
+        NativeImage nativeImage = holder[0];
+        if (nativeImage == null)
+        {
+            return;
+        }
         Util.getIoWorkerExecutor().execute(() -> {
             try {
                 nativeImage.writeTo(file);
-                MutableText text = Text.literal(file.getName()).formatted(Formatting.UNDERLINE).styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, file.getAbsolutePath())));
+                MutableText text = Text.literal(file.getName()).formatted(Formatting.UNDERLINE).styled(style -> style.withClickEvent(new ClickEvent.OpenFile(file.getAbsolutePath())));
                 mc.inGameHud.getChatHud().addMessage(Text.translatable("screenshot.success", text));
             }
             catch (Exception text) {

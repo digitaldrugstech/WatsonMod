@@ -59,27 +59,7 @@ public class AnnoCommand extends WatsonCommandBase
 
     private static int help(CommandContext<ServerCommandSource> context)
     {
-        int cmdCount = 0;
-        CommandDispatcher<ServerCommandSource> dispatcher = Command.commandDispatcher;
-        for (CommandNode<ServerCommandSource> command : dispatcher.getRoot().getChildren())
-        {
-            String cmdName = command.getName();
-            if (ClientCommandManager.isClientSideCommand(cmdName))
-            {
-                Map<CommandNode<ServerCommandSource>, String> usage = dispatcher.getSmartUsage(command, context.getSource());
-                for (String u : usage.values())
-                {
-                    ClientCommandManager.sendFeedback(Text.literal("/" + cmdName + " " + u));
-                }
-                cmdCount += usage.size();
-                if (usage.size() == 0)
-                {
-                    ClientCommandManager.sendFeedback(Text.literal("/" + cmdName));
-                    cmdCount++;
-                }
-            }
-        }
-        return cmdCount;
+        return printCommandUsage();
     }
 
     private static int list(CommandContext<ServerCommandSource> context)
@@ -87,11 +67,11 @@ public class AnnoCommand extends WatsonCommandBase
         BlockEditSet edits = DataManager.getEditSelection().getBlockEditSet();
         ArrayList<Annotation> annotations = edits.getAnnotations();
 
-        localOutputT(context.getSource(), "watson.message.anno.list.size", annotations.size());
+        localOutputT("watson.message.anno.list.size", annotations.size());
         int index = 1;
         for (Annotation annotation : annotations)
         {
-            localOutputT(context.getSource(), "watson.message.anno.annot", index, annotation.getX(), annotation.getY(), annotation.getZ(), annotation.getWorld(), annotation.getText());
+            localOutputT("watson.message.anno.annot", index, annotation.getX(), annotation.getY(), annotation.getZ(), annotation.getWorld(), annotation.getText());
             ++index;
         }
         return 1;
@@ -101,11 +81,11 @@ public class AnnoCommand extends WatsonCommandBase
     {
         ArrayList<Annotation> annotations = LocalAnnotation.getInstance().getAnnotations();
 
-        localOutputT(context.getSource(), "watson.message.anno.list.size", annotations.size());
+        localOutputT("watson.message.anno.list.size", annotations.size());
         int index = 1;
         for (Annotation annotation : annotations)
         {
-            localOutputT(context.getSource(), "watson.message.anno.annot", index, annotation.getX(), annotation.getY(), annotation.getZ(), annotation.getWorld(), annotation.getText());
+            localOutputT("watson.message.anno.annot", index, annotation.getX(), annotation.getY(), annotation.getZ(), annotation.getWorld(), annotation.getText());
             ++index;
         }
         return 1;
@@ -181,7 +161,7 @@ public class AnnoCommand extends WatsonCommandBase
         }
         else
         {
-            localErrorT(context.getSource(), "watson.error.anno.out_range");
+            localErrorT("watson.error.anno.out_range");
         }
         return 1;
     }
@@ -198,7 +178,7 @@ public class AnnoCommand extends WatsonCommandBase
         }
         else
         {
-            localErrorT(context.getSource(), "watson.error.anno.out_range");
+            localErrorT("watson.error.anno.out_range");
         }
         return 1;
     }
@@ -222,7 +202,7 @@ public class AnnoCommand extends WatsonCommandBase
             String text = getString(context, "text");
             Annotation annotation = new Annotation(x, y, z, world, text);
             annotations.add(annotation);
-            localOutputT(context.getSource(), "watson.message.anno.annot", annotations.size(), annotation.getX(), annotation.getY(), annotation.getZ(), annotation.getWorld(), annotation.getText());
+            localOutputT("watson.message.anno.annot", annotations.size(), annotation.getX(), annotation.getY(), annotation.getZ(), annotation.getWorld(), annotation.getText());
         }
         return 1;
     }
@@ -252,7 +232,7 @@ public class AnnoCommand extends WatsonCommandBase
             String text = getString(context, "text");
             Annotation annotation = new Annotation(blockPos.getX(), blockPos.getY(), blockPos.getZ(), world, text);
             annotations.add(annotation);
-            localOutputT(context.getSource(), "watson.message.anno.annot", annotations.size(), annotation.getX(), annotation.getY(), annotation.getZ(), annotation.getWorld(), annotation.getText());
+            localOutputT("watson.message.anno.annot", annotations.size(), annotation.getX(), annotation.getY(), annotation.getZ(), annotation.getWorld(), annotation.getText());
         }
         return 1;
     }

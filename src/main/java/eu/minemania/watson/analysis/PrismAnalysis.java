@@ -10,6 +10,7 @@ import eu.minemania.watson.db.WatsonBlock;
 import eu.minemania.watson.db.WatsonBlockRegistery;
 import eu.minemania.watson.scheduler.SyncTaskQueue;
 import eu.minemania.watson.scheduler.tasks.AddBlockEditTask;
+import fi.dy.masa.malilib.util.data.Color4f;
 import net.minecraft.text.*;
 import java.util.regex.Matcher;
 
@@ -177,6 +178,8 @@ public class PrismAnalysis extends Analysis
             }
             if (DataManager.getFilters().isAcceptedPlayer(player))
             {
+                Color4f color = type.getEffectiveColor();
+                Analysis.colorBlock = color != null ? color.intValue : 0;
                 BlockEdit edit = new BlockEdit(millis, player, action.toString(), _x, _y, _z, type, _world, count);
                 SyncTaskQueue.getInstance().addTask(new AddBlockEditTask(edit, true));
             }

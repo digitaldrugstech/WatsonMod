@@ -1,6 +1,5 @@
 package eu.minemania.watson.network.ledger.action;
 
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import eu.minemania.watson.Watson;
 import eu.minemania.watson.config.Configs;
 import eu.minemania.watson.db.BlockEdit;
@@ -10,14 +9,7 @@ import eu.minemania.watson.scheduler.SyncTaskQueue;
 import eu.minemania.watson.scheduler.tasks.AddBlockEditTask;
 import fi.dy.masa.malilib.network.IPluginClientPlayHandler;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.entity.decoration.painting.PaintingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.StringNbtReader;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.Identifier;
@@ -97,33 +89,8 @@ public abstract class PluginActionPacketHandler<T extends CustomPayload> impleme
 
         if (!additionalData.isEmpty())
         {
-            try {
-                NbtCompound nbtCompound = StringNbtReader.parse(additionalData);
-                ItemStack itemStack = ItemStack.fromNbtOrEmpty(MinecraftClient.getInstance().world.getRegistryManager(), nbtCompound);
-
-                if (!itemStack.isEmpty())
-                {
-                    count = itemStack.getCount();
-                    id = itemStack.getRegistryEntry().getIdAsString();
-                    if (itemStack.getRegistryEntry().getIdAsString().equals("minecraft:painting")) {
-                        NbtComponent nbtComponent = itemStack.getOrDefault(DataComponentTypes.ENTITY_DATA, NbtComponent.DEFAULT);
-                        if (!nbtComponent.isEmpty())
-                        {
-                            nbtComponent.get(PaintingEntity.VARIANT_MAP_CODEC)
-                                    .result()
-                                    .ifPresent(
-                                            variantMap -> {
-                                                variant.set(variantMap.getIdAsString());
-                                            }
-                                    );
-                        }
-                    }
-                } else {
-                    Watson.logger.error("Failed to parse NBT data: " + additionalData);
-                }
-            } catch (CommandSyntaxException e) {
-                Watson.logger.error("Failed to parse NBT data: " + additionalData);
-            }
+            // 1.21.11 item/painting NBT parsing changed; keep raw payload for now.
+            id = additionalData;
         }
 
         if (Configs.Generic.DEBUG.getBooleanValue())

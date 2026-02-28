@@ -284,7 +284,7 @@ public class Highlight
                 }
                 MutableText displayName = (MutableText) mc.player.getDisplayName();
                 String time = new SimpleDateFormat("HH:mm:ss").format(new Date());
-                HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.translatable("watson.chat.message.hover", (Text.literal(time)).formatted(Formatting.YELLOW)));
+                HoverEvent hover = new HoverEvent.ShowText(Text.translatable("watson.chat.message.hover", (Text.literal(time)).formatted(Formatting.YELLOW)));
                 displayName.styled(style -> style.withHoverEvent(hover));
                 if (!prefix.equals(Text.literal("")))
                 {

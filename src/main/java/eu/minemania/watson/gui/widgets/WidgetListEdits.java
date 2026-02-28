@@ -12,7 +12,7 @@ import eu.minemania.watson.selection.PlayereditSorter;
 import fi.dy.masa.malilib.gui.LeftRight;
 import fi.dy.masa.malilib.gui.widgets.WidgetListBase;
 import fi.dy.masa.malilib.gui.widgets.WidgetSearchBar;
-import net.minecraft.client.gui.DrawContext;
+import fi.dy.masa.malilib.render.GuiContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.registry.Registries;
@@ -42,9 +42,9 @@ public class WidgetListEdits extends WidgetListBase<PlayereditEntry, WidgetEdits
     }
 
     @Override
-    public void drawContents(DrawContext drawContext, int mouseX, int mouseY, float partialTicks)
+    public void drawContents(GuiContext guiContext, int mouseX, int mouseY, float partialTicks)
     {
-        super.drawContents(drawContext, mouseX, mouseY, partialTicks);
+        super.drawContents(guiContext, mouseX, mouseY, partialTicks);
         lastScrollbarPosition = this.scrollBar.getValue();
     }
 

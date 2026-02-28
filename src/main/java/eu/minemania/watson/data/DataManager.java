@@ -59,7 +59,7 @@ public class DataManager implements IDirectoryCache
 
     protected static final Pattern DATE_PATTERN = Pattern.compile("^(\\d{4})-(\\d{1,2})-(\\d{1,2})$");
     protected static final Pattern ABSOLUTE_TIME = Pattern.compile("(\\d{1,2})-(\\d{1,2}) (\\d{1,2}):(\\d{1,2}):(\\d{1,2})");
-    private static final Map<String, File> LAST_DIRECTORIES = new HashMap<>();
+    private static final Map<String, Path> LAST_DIRECTORIES = new HashMap<>();
     private static final ArrayList<String> setNames = new ArrayList<>();
 
     private static ConfigGuiTab configGuiTab = ConfigGuiTab.GENERIC;
@@ -165,13 +165,13 @@ public class DataManager implements IDirectoryCache
 
     @Override
     @Nullable
-    public File getCurrentDirectoryForContext(String context)
+    public Path getCurrentDirectoryForContext(String context)
     {
         return LAST_DIRECTORIES.get(context);
     }
 
     @Override
-    public void setCurrentDirectoryForContext(String context, File dir)
+    public void setCurrentDirectoryForContext(String context, Path dir)
     {
         LAST_DIRECTORIES.put(context, dir);
     }
@@ -199,9 +199,9 @@ public class DataManager implements IDirectoryCache
 
                     if (el.isJsonPrimitive())
                     {
-                        File dir = new File(el.getAsString());
+                        Path dir = Path.of(el.getAsString());
 
-                        if (dir.exists() && dir.isDirectory())
+                        if (Files.exists(dir) && Files.isDirectory(dir))
                         {
                             LAST_DIRECTORIES.put(name, dir);
                         }
@@ -244,9 +244,9 @@ public class DataManager implements IDirectoryCache
         JsonObject root = new JsonObject();
         JsonObject objDirs = new JsonObject();
 
-        for (Map.Entry<String, File> entry : LAST_DIRECTORIES.entrySet())
+        for (Map.Entry<String, Path> entry : LAST_DIRECTORIES.entrySet())
         {
-            objDirs.add(entry.getKey(), new JsonPrimitive(entry.getValue().getAbsolutePath()));
+            objDirs.add(entry.getKey(), new JsonPrimitive(entry.getValue().toAbsolutePath().toString()));
         }
 
         root.add("last_directories", objDirs);
@@ -638,9 +638,9 @@ public class DataManager implements IDirectoryCache
         ArrayList<String> tags = new ArrayList<>();
         ArrayList<String> deDupTags = new ArrayList<>();
 
-        Registries.BLOCK.streamTags().forEach((block) -> tags.add("#"+block.id().toString()));
-        Registries.ENTITY_TYPE.streamTags().forEach((entity) -> tags.add("#"+entity.id().toString()));
-        Registries.ITEM.streamTags().forEach((item) -> tags.add("#"+item.id().toString()));
+        Registries.BLOCK.streamTags().forEach((block) -> tags.add("#"+block.getTag().id().toString()));
+        Registries.ENTITY_TYPE.streamTags().forEach((entity) -> tags.add("#"+entity.getTag().id().toString()));
+        Registries.ITEM.streamTags().forEach((item) -> tags.add("#"+item.getTag().id().toString()));
 
         for (String tag : tags) {
             if (!deDupTags.contains(tag)) {

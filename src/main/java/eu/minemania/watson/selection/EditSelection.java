@@ -1,6 +1,5 @@
 package eu.minemania.watson.selection;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import eu.minemania.watson.client.Teleport;
 import eu.minemania.watson.config.Plugins;
 import eu.minemania.watson.db.BlockEdit;
@@ -8,16 +7,14 @@ import eu.minemania.watson.db.BlockEditComparator;
 import eu.minemania.watson.db.BlockEditSet;
 import eu.minemania.watson.db.PlayereditSet;
 import eu.minemania.watson.render.RenderUtils;
+import fi.dy.masa.malilib.util.data.Color4f;
 import fi.dy.masa.malilib.util.WorldUtils;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.BuiltBuffer;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
-import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import eu.minemania.watson.Watson;
@@ -39,9 +36,9 @@ public class EditSelection
     protected boolean _selectionChanged;
     protected BlockEdit _selection;
     protected HashMap<String, Object> _variables = new HashMap<>();
-    protected static HashMap<String, BlockEditSet> _edits = new HashMap<>();
+    protected static final java.util.concurrent.ConcurrentHashMap<String, BlockEditSet> _edits = new java.util.concurrent.ConcurrentHashMap<>();
     protected Calendar _calendar = Calendar.getInstance();
-    private static ReplayThread thread;
+    private static volatile ReplayThread thread;
 
     public HashMap<String, Object> getVariables()
     {
@@ -116,7 +113,7 @@ public class EditSelection
             idBuilder.append(serverIP);
         }
         idBuilder.append('/');
-        idBuilder.append(WorldUtils.getDimensionId(player.getWorld()));
+        idBuilder.append(WorldUtils.getDimensionId(player.getEntityWorld()));
         String id = idBuilder.toString();
 
         BlockEditSet edits = _edits.get(id);
@@ -132,47 +129,27 @@ public class EditSelection
     {
         if (_selection != null && Configs.Edits.SELECTION_SHOWN.getBooleanValue() && (DataManager.getWorldPlugin().isEmpty() || DataManager.getWorldPlugin().equals(_selection.world)))
         {
+            Color4f selColor = new Color4f(1f, 0f, 1f, 0.5f);
             Tessellator tesselator = Tessellator.getInstance();
             BufferBuilder buffer = RenderUtils.startDrawingLines(tesselator);
-            BuiltBuffer builtBuffer;
-            RenderSystem.lineWidth(4.0F);
 
             final float halfSize = 0.3f;
             float x = _selection.x + 0.5f;
             float y = _selection.y + 0.5f;
             float z = _selection.z + 0.5f;
-            buffer.vertex(x - halfSize, y, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
-            buffer.vertex(x + halfSize, y, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
-            buffer.vertex(x, y - halfSize, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
-            buffer.vertex(x, y + halfSize, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
-            buffer.vertex(x, y, z - halfSize).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
-            buffer.vertex(x, y, z + halfSize).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
-            try {
-                builtBuffer = buffer.end();
-                BufferRenderer.drawWithGlobalProgram(builtBuffer);
-                builtBuffer.close();
-            } catch (Exception e) {
-                // Ignored
-            }
+            RenderUtils.addLine(buffer, x - halfSize, y, z, x + halfSize, y, z, selColor);
+            RenderUtils.addLine(buffer, x, y - halfSize, z, x, y + halfSize, z, selColor);
+            RenderUtils.addLine(buffer, x, y, z - halfSize, x, y, z + halfSize, selColor);
 
             if (_selection.playereditSet != null)
             {
                 BlockEdit previous = _selection.playereditSet.getEditBefore(_selection);
                 if (previous != null)
                 {
-                    buffer = RenderUtils.startDrawingLines(tesselator);
-                    RenderSystem.lineWidth(3.0F);
-                    buffer.vertex(previous.x + 0.5f, previous.y + 0.5f, previous.z + 0.5f).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
-                    buffer.vertex(x, y, z).color(255 / 255f, 0 / 255f, 255 / 255f, 128).normal(0, 0, 0);
-                    try {
-                        builtBuffer = buffer.end();
-                        BufferRenderer.drawWithGlobalProgram(builtBuffer);
-                        builtBuffer.close();
-                    } catch (Exception e) {
-                        // Ignored
-                    }
+                    RenderUtils.addLine(buffer, previous.x + 0.5f, previous.y + 0.5f, previous.z + 0.5f, x, y, z, selColor);
                 }
             }
+            RenderUtils.submitBuffer(buffer);
         }
     }
 
@@ -242,11 +219,11 @@ public class EditSelection
         }
     }
 
-    public void replay(String since, double speed, int radius, ServerCommandSource source)
+    public void replay(String since, double speed, int radius)
     {
         TreeSet<BlockEdit> edits = new TreeSet<>(new BlockEditComparator());
         long timing = DataManager.getTimeDiff(since);
-        Entity entity = source.getEntity();
+        Entity entity = MinecraftClient.getInstance().player;
 
         if (entity == null)
         {
@@ -258,14 +235,16 @@ public class EditSelection
             return;
         }
 
-        for (PlayereditSet playereditSet : DataManager.getEditSelection().getBlockEditSet().getPlayereditSet().values())
+        BlockEditSet editSet = DataManager.getEditSelection().getBlockEditSet();
+        if (editSet == null) return;
+        for (PlayereditSet playereditSet : editSet.getPlayereditSet().values())
         {
             for (BlockEdit edit : playereditSet.getBlockEdits())
             {
                 if (timing <= edit.time)
                 {
                     Vec3d editPos = new Vec3d(edit.x, edit.y, edit.z);
-                    if (entity.getPos().isInRange(editPos, radius))
+                    if (entity.getEntityPos().isInRange(editPos, radius))
                     {
                         edits.add(edit);
                     }
@@ -295,7 +274,16 @@ public class EditSelection
 
     public void cancelReplay()
     {
-        thread.cancelReplay();
+        ReplayThread t = thread;
+        if (t != null)
+        {
+            t.cancelReplay();
+        }
+    }
+
+    public static void clearAllEdits()
+    {
+        _edits.clear();
     }
 }
 
@@ -305,6 +293,7 @@ class ReplayThread implements Runnable {
     private final MinecraftClient mc;
     private final EditSelection editSelection;
     private final double speed;
+
     public ReplayThread(TreeSet<BlockEdit> edits, MinecraftClient mc, EditSelection editSelection, double speed)
     {
         this.edits = edits;
@@ -312,7 +301,9 @@ class ReplayThread implements Runnable {
         this.editSelection = editSelection;
         this.speed = speed;
     }
-    public void run() {
+
+    public void run()
+    {
         for (BlockEdit edit : edits)
         {
             if (exit)
@@ -321,28 +312,39 @@ class ReplayThread implements Runnable {
             }
             try
             {
-                PlayerEntity player = mc.player;
-                ClientPlayNetworkHandler networkHandler = mc.getNetworkHandler();
-                double randX = MathHelper.clamp(edit.x + player.getRandom().nextDouble() * 16.0D, edit.x - 3, edit.x + 3);
-                double randY = MathHelper.clamp(edit.y + (double) (player.getRandom().nextInt(16)), edit.y - 3, edit.y + 3);
-                double randZ = MathHelper.clamp(edit.z + player.getRandom().nextDouble() * 16.0D, edit.z - 3, edit.z + 3);
-                player.startFallFlying();
-                networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.START_FALL_FLYING));
-                Teleport.teleport(randX, randY, randZ, edit.world);
+                mc.execute(() -> {
+                    PlayerEntity player = mc.player;
+                    ClientPlayNetworkHandler networkHandler = mc.getNetworkHandler();
+                    if (player == null || networkHandler == null) return;
+
+                    double randX = MathHelper.clamp(edit.x + player.getRandom().nextDouble() * 16.0D, edit.x - 3, edit.x + 3);
+                    double randY = MathHelper.clamp(edit.y + (double) (player.getRandom().nextInt(16)), edit.y - 3, edit.y + 3);
+                    double randZ = MathHelper.clamp(edit.z + player.getRandom().nextDouble() * 16.0D, edit.z - 3, edit.z + 3);
+                    player.startGliding();
+                    networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.START_FALL_FLYING));
+                    Teleport.teleport(randX, randY, randZ, edit.world);
+                });
                 Thread.sleep(50L);
-                player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, new Vec3d(edit.x, edit.y, edit.z));
-                networkHandler.sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(player.getYaw(), player.getPitch(), false));
-                editSelection.selectPosition(edit.x, edit.y, edit.z, edit.world, edit.amount);
-                player.stopFallFlying();
-                networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.START_FALL_FLYING));
-                Thread.sleep((long) (10000L / speed) - 50L);
+                mc.execute(() -> {
+                    PlayerEntity player = mc.player;
+                    ClientPlayNetworkHandler networkHandler = mc.getNetworkHandler();
+                    if (player == null || networkHandler == null) return;
+
+                    player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, new Vec3d(edit.x, edit.y, edit.z));
+                    networkHandler.sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(player.getYaw(), player.getPitch(), false, false));
+                    editSelection.selectPosition(edit.x, edit.y, edit.z, edit.world, edit.amount);
+                    player.stopGliding();
+                    networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.START_FALL_FLYING));
+                });
+                Thread.sleep(Math.max(0L, (long) (10000L / speed) - 50L));
             }
             catch (InterruptedException e)
             {
-                e.printStackTrace();
+                Watson.logger.warn("Replay interrupted", e);
             }
         }
     }
+
     public void cancelReplay()
     {
         exit = true;

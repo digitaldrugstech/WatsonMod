@@ -2,15 +2,12 @@ package eu.minemania.watson.db;
 
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.Set;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import eu.minemania.watson.config.Configs;
 import eu.minemania.watson.render.RenderUtils;
 import fi.dy.masa.malilib.util.data.Color4f;
 import net.minecraft.block.*;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.block.BlockRenderManager;
-import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.entity.EntityType;
 import net.minecraft.util.Identifier;
@@ -30,8 +27,7 @@ public class BlockEdit
     public String world;
     public PlayereditSet playereditSet;
     public boolean disabled;
-    private final BlockRenderManager blockModelShapes;
-    protected boolean drawn;
+    private Block cachedBlock;
     private HashMap<String,Object> additional;
 
     public BlockEdit(long time, String player, String action, int x, int y, int z, WatsonBlock block, String world, int amount)
@@ -45,8 +41,6 @@ public class BlockEdit
         this.z = z;
         this.block = block;
         this.world = world;
-        MinecraftClient mc = MinecraftClient.getInstance();
-        this.blockModelShapes = mc.getBlockRenderManager();
     }
 
     public void setAdditional(HashMap<String,Object> additional)
@@ -59,46 +53,45 @@ public class BlockEdit
         return this.additional;
     }
 
-    public int drawOutline(BufferBuilder buffer)
+    public void drawOutline(BufferBuilder buffer, Set<Long> drawnOrePositions)
     {
-        Block blocks = Registries.BLOCK.get(Identifier.tryParse(block.getName()));
-        float lineWidth = block.getLineWidth();
+        if (cachedBlock == null) {
+            cachedBlock = Registries.BLOCK.get(Identifier.tryParse(block.getName()));
+        }
+        Block blocks = cachedBlock;
         if (!blocks.getName().getString().toLowerCase().contains("air"))
         {
-            if (Configs.Outlines.ORE_OUTLINE_THICKER.getBooleanValue() && isOreBlock(blocks))
-            {
-                lineWidth = Configs.Outlines.ORE_LINEWIDTH.getIntegerValue();
-            }
-            RenderSystem.lineWidth(lineWidth);
-            renderBlocks(buffer, blocks);
+            renderBlocks(buffer, blocks, drawnOrePositions);
         }
         else
         {
-            RenderSystem.lineWidth(lineWidth);
             renderEntities(buffer);
         }
-        return 0;
     }
 
-    private void renderBlocks(BufferBuilder buffer, Block blocks)
+    private void renderBlocks(BufferBuilder buffer, Block blocks, Set<Long> drawnOrePositions)
     {
-        Color4f color = block.getOverrideColor() != Color4f.ZERO && block.getOverrideColor() != null ? block.getOverrideColor() : block.getColor();
+        Color4f color = block.getEffectiveColor();
         if (!block.getName().equals("minecraft:grass") && !block.getName().equals("minecraft:water") &&
                 !block.getName().equals("minecraft:lava"))
         {
             BlockState state = blocks.getDefaultState();
-            BakedModel model = this.blockModelShapes.getModel(state);
             if (Configs.Lists.SMALLER_RENDER_BOX.getStrings().contains(block.getName()))
             {
                 RenderUtils.drawBlockBoundingBoxOutlinesBatchedLines(new BlockPos(x, y, z), color, -0.25, buffer);
             }
             else
             {
-                if (isOreNotDrawn())
+                if (isOreNotDrawn(drawnOrePositions))
                 {
                     if (blocks instanceof SignBlock || blocks instanceof WallSignBlock)
                     {
-                        RenderUtils.drawSpecialOutlinesBatched(x, y, z, color, buffer, true);
+                        if (Configs.Outlines.FULL_BLOCK_OUTLINE.getBooleanValue()) {
+                            RenderUtils.drawFullBlockOutlinesBatched(x, y, z, color, buffer);
+                        } else
+                        {
+                            RenderUtils.drawSpecialOutlinesBatched(x, y, z, color, buffer, true);
+                        }
                     }
                     else if (blocks instanceof ChestBlock || blocks instanceof ShulkerBoxBlock)
                     {
@@ -110,18 +103,18 @@ public class BlockEdit
                     }
                     else
                     {
-                        RenderUtils.drawBlockModelOutlinesBatched(model, state, new BlockPos(x, y, z), color, buffer);
+                        if (Configs.Outlines.FULL_BLOCK_OUTLINE.getBooleanValue()) {
+                            RenderUtils.drawFullBlockOutlinesBatched(x, y, z, color, buffer);
+                        } else {
+                            RenderUtils.drawBlockModelOutlinesBatched(state, new BlockPos(x, y, z), color, buffer);
+                        }
                     }
                 }
-            }
-            if (!drawn && this.isOreBlock(blocks))
-            {
-                drawn = true;
             }
         }
         else
         {
-            if (isOreNotDrawn())
+            if (isOreNotDrawn(drawnOrePositions))
             {
                 RenderUtils.drawFullBlockOutlinesBatched(x, y, z, color, buffer);
             }
@@ -131,7 +124,7 @@ public class BlockEdit
     private void renderEntities(BufferBuilder buffer)
     {
         Optional<EntityType<?>> entity = EntityType.get(block.getName());
-        Color4f color = block.getOverrideColor() != Color4f.ZERO && block.getOverrideColor() != null ? block.getOverrideColor() : block.getColor();
+        Color4f color = block.getEffectiveColor();
         if (entity.isPresent())
         {
             if (block.getName().equals("minecraft:item_frame") || block.getName().equals("minecraft:painting"))
@@ -149,17 +142,11 @@ public class BlockEdit
         }
     }
 
-    private boolean isOreNotDrawn()
+    private boolean isOreNotDrawn(Set<Long> drawnOrePositions)
     {
-        for (BlockEdit blockEdit : playereditSet._edits)
-        {
-            if (Configs.Outlines.ONLY_ORE_BLOCK.getBooleanValue() && blockEdit.x == x && blockEdit.y == y && blockEdit.z == z && blockEdit.drawn)
-            {
-                return this == blockEdit;
-            }
-        }
-
-        return true;
+        if (!Configs.Outlines.ONLY_ORE_BLOCK.getBooleanValue()) return true;
+        long packed = ((long)(x & 0x3FFFFFF)) | (((long)(z & 0x3FFFFFF)) << 26) | (((long)(y & 0xFFF)) << 52);
+        return drawnOrePositions.add(packed);
     }
 
     public boolean isCreated()
@@ -182,8 +169,4 @@ public class BlockEdit
         return this.action.equals("removed") || this.action.equals("took") || this.action.equals("remove") || this.action.equals("item-remove");
     }
 
-    private boolean isOreBlock(Block block)
-    {
-        return block instanceof ExperienceDroppingBlock || block instanceof RedstoneOreBlock || block instanceof AmethystBlock || block.equals(Blocks.ANCIENT_DEBRIS) || block.equals(Blocks.GILDED_BLACKSTONE);
-    }
 }

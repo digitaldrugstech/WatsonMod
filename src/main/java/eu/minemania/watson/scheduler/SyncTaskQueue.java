@@ -17,16 +17,17 @@ public class SyncTaskQueue
         _taskQueue.add(task);
     }
 
+    private static final int MAX_TASKS_PER_TICK = 200;
+
     public void runTasks()
     {
-        for (; ; )
+        int processed = 0;
+        while (processed < MAX_TASKS_PER_TICK)
         {
             Runnable task = _taskQueue.poll();
-            if (task == null)
-            {
-                break;
-            }
+            if (task == null) break;
             task.run();
+            processed++;
         }
     }
 }

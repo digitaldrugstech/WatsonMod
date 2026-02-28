@@ -14,8 +14,10 @@ import java.util.LinkedHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import eu.minemania.watson.Watson;
 import eu.minemania.watson.client.Teleport;
 import eu.minemania.watson.render.RenderUtils;
+import eu.minemania.watson.render.WatsonRenderLayers;
 import net.minecraft.client.render.*;
 
 import eu.minemania.watson.chat.ChatMessage;
@@ -266,20 +268,13 @@ public class BlockEditSet
         {
             Tessellator tessellator = Tessellator.getInstance();
             BufferBuilder buffer = RenderUtils.startDrawingLines(tessellator);
-            BuiltBuffer builtBuffer;
             int nextColorIndex1 = 0;
             for (PlayereditSet editsForPlayer : playerEdits.values())
             {
                 editsForPlayer.drawVectors(OverlayRenderer.KELLY_COLORS[nextColorIndex1], buffer);
                 nextColorIndex1 = (nextColorIndex1 + 1) % OverlayRenderer.KELLY_COLORS.length;
             }
-            try {
-                builtBuffer = buffer.end();
-                BufferRenderer.drawWithGlobalProgram(builtBuffer);
-                builtBuffer.close();
-            } catch (Exception e) {
-                // Ignored
-            }
+            RenderUtils.submitBuffer(buffer);
         }
     }
 

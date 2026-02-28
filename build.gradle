@@ -1,7 +1,7 @@
 import groovy.json.JsonSlurper
 
 plugins {
-	id 'fabric-loom' version '1.10-SNAPSHOT'
+	id 'fabric-loom' version '1.14.10'
 	id 'maven-publish'
 	id 'com.modrinth.minotaur' version '2.+'
 }
@@ -16,13 +16,17 @@ if (ENV.LOADERS) {
 group = project.group + "." + project.mod_id // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 version = project.mod_version + '+' + project.minecraft_version_mod
 
+loom {
+	accessWidenerPath = file("src/main/resources/watson.accesswidener")
+}
+
 base {
 	archivesName = project.mod_file_name
 }
 
 repositories {
 	mavenCentral()
-//	maven { url 'https://masa.dy.fi/maven' }
+	maven { url = 'https://api.modrinth.com/maven' }
 	maven { url = 'https://maven.terraformersmc.com/' }
 	maven {url = 'https://jitpack.io' }
 }
@@ -31,10 +35,10 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.mappings_version}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 	implementation "com.google.code.findbugs:jsr305:3+"
 
-//	modImplementation "fi.dy.masa.malilib:malilib-fabric-${project.minecraft_version_malilib}:${project.malilib_version}"
-	modImplementation "com.github.sakura-ryoko:malilib:${project.minecraft_version_malilib}-${project.malilib_version}"
+	modImplementation "maven.modrinth:malilib:${project.malilib_version}"
 	modImplementation "com.terraformersmc:modmenu:${project.mod_menu_version}"
 }
 
