@@ -6,7 +6,6 @@ import java.util.*;
 import eu.minemania.watson.Watson;
 import eu.minemania.watson.data.DataManager;
 import eu.minemania.watson.render.RenderUtils;
-import eu.minemania.watson.render.WatsonRenderLayers;
 import eu.minemania.watson.selection.PlayereditUtils;
 import net.minecraft.client.render.*;
 import eu.minemania.watson.config.Configs;

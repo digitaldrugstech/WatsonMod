@@ -1,6 +1,5 @@
 package eu.minemania.watson.selection;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import eu.minemania.watson.client.Teleport;
 import eu.minemania.watson.config.Plugins;
 import eu.minemania.watson.db.BlockEdit;
@@ -11,7 +10,6 @@ import eu.minemania.watson.render.RenderUtils;
 import fi.dy.masa.malilib.util.data.Color4f;
 import fi.dy.masa.malilib.util.WorldUtils;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.render.BuiltBuffer;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -338,7 +336,7 @@ class ReplayThread implements Runnable {
                     player.stopGliding();
                     networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.START_FALL_FLYING));
                 });
-                Thread.sleep((long) (10000L / speed) - 50L);
+                Thread.sleep(Math.max(0L, (long) (10000L / speed) - 50L));
             }
             catch (InterruptedException e)
             {

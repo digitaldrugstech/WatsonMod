@@ -4,7 +4,6 @@ import eu.minemania.watson.config.Configs;
 import fi.dy.masa.malilib.util.data.Color4f;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.*;
-import net.minecraft.client.render.model.BlockStateModel;
 import net.minecraft.util.math.*;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.EmptyBlockView;
@@ -13,7 +12,12 @@ public class RenderUtils
 {
     public static float getLineWidth()
     {
-        return (float) Configs.Outlines.ORE_LINEWIDTH.getIntegerValue();
+        float width = (float) Configs.Outlines.ORE_LINEWIDTH.getIntegerValue();
+        if (Configs.Outlines.ORE_OUTLINE_THICKER.getBooleanValue())
+        {
+            width *= 2f;
+        }
+        return width;
     }
 
     public static BufferBuilder startDrawingLines(Tessellator tessellator)
@@ -22,9 +26,6 @@ public class RenderUtils
         return tessellator.begin(lineLayer.getDrawMode(), lineLayer.getVertexFormat());
     }
 
-    /**
-     * Emits a line segment with correct normal (line direction) for the LINES shader.
-     */
     /**
      * Emits a line segment with correct normal (line direction) for the LINES shader.
      * Uses the global oreLinewidth config setting.
@@ -218,7 +219,7 @@ public class RenderUtils
      * Draws outline matching the block's VoxelShape (collision/outline shape).
      * Falls back to full block outline if shape is empty.
      */
-    public static void drawBlockModelOutlinesBatched(BlockStateModel model, BlockState state, BlockPos pos, Color4f color, BufferBuilder buffer)
+    public static void drawBlockModelOutlinesBatched(BlockState state, BlockPos pos, Color4f color, BufferBuilder buffer)
     {
         VoxelShape shape = state.getOutlineShape(EmptyBlockView.INSTANCE, pos);
         if (shape.isEmpty())

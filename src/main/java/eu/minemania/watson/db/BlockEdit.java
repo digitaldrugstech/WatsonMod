@@ -8,10 +8,7 @@ import eu.minemania.watson.config.Configs;
 import eu.minemania.watson.render.RenderUtils;
 import fi.dy.masa.malilib.util.data.Color4f;
 import net.minecraft.block.*;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.model.BlockStateModel;
 import net.minecraft.entity.EntityType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -30,7 +27,6 @@ public class BlockEdit
     public String world;
     public PlayereditSet playereditSet;
     public boolean disabled;
-    private final BlockRenderManager blockModelShapes;
     private Block cachedBlock;
     private HashMap<String,Object> additional;
 
@@ -45,8 +41,6 @@ public class BlockEdit
         this.z = z;
         this.block = block;
         this.world = world;
-        MinecraftClient mc = MinecraftClient.getInstance();
-        this.blockModelShapes = mc.getBlockRenderManager();
     }
 
     public void setAdditional(HashMap<String,Object> additional)
@@ -82,7 +76,6 @@ public class BlockEdit
                 !block.getName().equals("minecraft:lava"))
         {
             BlockState state = blocks.getDefaultState();
-            BlockStateModel model = this.blockModelShapes.getModel(state);
             if (Configs.Lists.SMALLER_RENDER_BOX.getStrings().contains(block.getName()))
             {
                 RenderUtils.drawBlockBoundingBoxOutlinesBatchedLines(new BlockPos(x, y, z), color, -0.25, buffer);
@@ -113,7 +106,7 @@ public class BlockEdit
                         if (Configs.Outlines.FULL_BLOCK_OUTLINE.getBooleanValue()) {
                             RenderUtils.drawFullBlockOutlinesBatched(x, y, z, color, buffer);
                         } else {
-                            RenderUtils.drawBlockModelOutlinesBatched(model, state, new BlockPos(x, y, z), color, buffer);
+                            RenderUtils.drawBlockModelOutlinesBatched(state, new BlockPos(x, y, z), color, buffer);
                         }
                     }
                 }
