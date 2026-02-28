@@ -230,6 +230,8 @@ public class CoreProtectAnalysis extends Analysis
     {
         isCpMessage = true;
         _isLookup = false;
+        ChatMessage.getInstance().clearQueue();
+        Paginator.getInstance().reset();
         _x = Integer.parseInt(m.group(1));
         _y = Integer.parseInt(m.group(2));
         _z = Integer.parseInt(m.group(3));
@@ -260,6 +262,8 @@ public class CoreProtectAnalysis extends Analysis
     void lookupHeader(MutableText chat, Matcher m)
     {
         _isLookup = true;
+        ChatMessage.getInstance().clearQueue();
+        Paginator.getInstance().reset();
     }
 
     void noResult(MutableText chat, Matcher m)
@@ -320,6 +324,7 @@ public class CoreProtectAnalysis extends Analysis
         _looping = false;
         isCpMessage = false;
         Paginator.getInstance().reset();
+        ChatMessage.getInstance().clearQueue();
     }
 
     private boolean sendMessage()
