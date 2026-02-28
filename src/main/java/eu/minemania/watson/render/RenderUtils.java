@@ -1,5 +1,6 @@
 package eu.minemania.watson.render;
 
+import eu.minemania.watson.config.Configs;
 import fi.dy.masa.malilib.util.data.Color4f;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.*;
@@ -10,7 +11,10 @@ import net.minecraft.world.EmptyBlockView;
 
 public class RenderUtils
 {
-    private static final float LINE_WIDTH = 2.5f;
+    public static float getLineWidth()
+    {
+        return (float) Configs.Outlines.ORE_LINEWIDTH.getIntegerValue();
+    }
 
     public static BufferBuilder startDrawingLines(Tessellator tessellator)
     {
@@ -21,13 +25,18 @@ public class RenderUtils
     /**
      * Emits a line segment with correct normal (line direction) for the LINES shader.
      */
+    /**
+     * Emits a line segment with correct normal (line direction) for the LINES shader.
+     * Uses the global oreLinewidth config setting.
+     */
     public static void addLine(BufferBuilder buffer,
                                float x1, float y1, float z1,
                                float x2, float y2, float z2, Color4f color)
     {
+        float lw = getLineWidth();
         float dx = x2 - x1, dy = y2 - y1, dz = z2 - z1;
-        buffer.vertex(x1, y1, z1).color(color.r, color.g, color.b, color.a).normal(dx, dy, dz).lineWidth(LINE_WIDTH);
-        buffer.vertex(x2, y2, z2).color(color.r, color.g, color.b, color.a).normal(dx, dy, dz).lineWidth(LINE_WIDTH);
+        buffer.vertex(x1, y1, z1).color(color.r, color.g, color.b, color.a).normal(dx, dy, dz).lineWidth(lw);
+        buffer.vertex(x2, y2, z2).color(color.r, color.g, color.b, color.a).normal(dx, dy, dz).lineWidth(lw);
     }
 
     public static void submitBuffer(BufferBuilder buffer)
