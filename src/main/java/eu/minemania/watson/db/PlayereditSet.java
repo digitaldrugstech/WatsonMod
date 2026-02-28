@@ -159,8 +159,7 @@ public class PlayereditSet
                         double length = diff.length();
                         if (length >= (float) Configs.Edits.VECTOR_LENGTH.getDoubleValue())
                         {
-                            RenderUtils.addVertex(buffer, (float) pPos.x, (float) pPos.y, (float) pPos.z, color);
-                            RenderUtils.addVertex(buffer, (float) nPos.x, (float) nPos.y, (float) nPos.z, color);
+                            RenderUtils.addLine(buffer, (float) pPos.x, (float) pPos.y, (float) pPos.z, (float) nPos.x, (float) nPos.y, (float) nPos.z, color);
 
                             // Length from arrow tip to midpoint of vector as a fraction of
                             // the total vector length. Scale the arrow in proportion to the
@@ -192,14 +191,11 @@ public class PlayereditSet
                             Vec3d draw1 = new Vec3d(fin1.x * arrowScale * length, fin1.y * arrowScale * length, fin1.z * arrowScale * length);
                             Vec3d draw2 = new Vec3d(fin2.x * arrowScale * length, fin2.y * arrowScale * length, fin2.z * arrowScale * length);
                             // Draw four fins
-                            RenderUtils.addVertex(buffer, (float) tip.x, (float) tip.y, (float) tip.z, color);
-                            RenderUtils.addVertex(buffer, (float) (tail.x + draw1.x), (float) (tail.y + draw1.y), (float) (tail.z + draw1.z), color);
-                            RenderUtils.addVertex(buffer, (float) tip.x, (float) tip.y, (float) tip.z, color);
-                            RenderUtils.addVertex(buffer, (float) (tail.x - draw1.x), (float) (tail.y - draw1.y), (float) (tail.z - draw1.z), color);
-                            RenderUtils.addVertex(buffer, (float) tip.x, (float) tip.y, (float) tip.z, color);
-                            RenderUtils.addVertex(buffer, (float) (tail.x + draw2.x), (float) (tail.y + draw2.y), (float) (tail.z + draw2.z), color);
-                            RenderUtils.addVertex(buffer, (float) tip.x, (float) tip.y, (float) tip.z, color);
-                            RenderUtils.addVertex(buffer, (float) (tail.x - draw2.x), (float) (tail.y - draw2.y), (float) (tail.z - draw2.z), color);
+                            float tx = (float) tip.x, ty = (float) tip.y, tz = (float) tip.z;
+                            RenderUtils.addLine(buffer, tx, ty, tz, (float) (tail.x + draw1.x), (float) (tail.y + draw1.y), (float) (tail.z + draw1.z), color);
+                            RenderUtils.addLine(buffer, tx, ty, tz, (float) (tail.x - draw1.x), (float) (tail.y - draw1.y), (float) (tail.z - draw1.z), color);
+                            RenderUtils.addLine(buffer, tx, ty, tz, (float) (tail.x + draw2.x), (float) (tail.y + draw2.y), (float) (tail.z + draw2.z), color);
+                            RenderUtils.addLine(buffer, tx, ty, tz, (float) (tail.x - draw2.x), (float) (tail.y - draw2.y), (float) (tail.z - draw2.z), color);
                         }
                         prev = next;
                     }

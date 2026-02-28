@@ -18,8 +18,16 @@ public class RenderUtils
         return tessellator.begin(lineLayer.getDrawMode(), lineLayer.getVertexFormat());
     }
 
-    public static void addVertex(BufferBuilder buffer, float x, float y, float z, Color4f color) {
-        buffer.vertex(x, y, z).color(color.r, color.g, color.b, color.a).normal(0, 0, 0).lineWidth(LINE_WIDTH);
+    /**
+     * Emits a line segment with correct normal (line direction) for the LINES shader.
+     */
+    public static void addLine(BufferBuilder buffer,
+                               float x1, float y1, float z1,
+                               float x2, float y2, float z2, Color4f color)
+    {
+        float dx = x2 - x1, dy = y2 - y1, dz = z2 - z1;
+        buffer.vertex(x1, y1, z1).color(color.r, color.g, color.b, color.a).normal(dx, dy, dz).lineWidth(LINE_WIDTH);
+        buffer.vertex(x2, y2, z2).color(color.r, color.g, color.b, color.a).normal(dx, dy, dz).lineWidth(LINE_WIDTH);
     }
 
     public static void submitBuffer(BufferBuilder buffer)
@@ -71,84 +79,46 @@ public class RenderUtils
                                                    Color4f color, BufferBuilder buffer)
     {
         // West side
-        addVertex(buffer, minX, minY, minZ, color);
-        addVertex(buffer, minX, minY, maxZ, color);
-
-        addVertex(buffer, minX, minY, maxZ, color);
-        addVertex(buffer, minX, maxY, maxZ, color);
-
-        addVertex(buffer, minX, maxY, maxZ, color);
-        addVertex(buffer, minX, maxY, minZ, color);
-
-        addVertex(buffer, minX, maxY, minZ, color);
-        addVertex(buffer, minX, minY, minZ, color);
+        addLine(buffer, minX, minY, minZ, minX, minY, maxZ, color);
+        addLine(buffer, minX, minY, maxZ, minX, maxY, maxZ, color);
+        addLine(buffer, minX, maxY, maxZ, minX, maxY, minZ, color);
+        addLine(buffer, minX, maxY, minZ, minX, minY, minZ, color);
 
         // East side
-        addVertex(buffer, maxX, minY, maxZ, color);
-        addVertex(buffer, maxX, minY, minZ, color);
-
-        addVertex(buffer, maxX, minY, minZ, color);
-        addVertex(buffer, maxX, maxY, minZ, color);
-
-        addVertex(buffer, maxX, maxY, minZ, color);
-        addVertex(buffer, maxX, maxY, maxZ, color);
-
-        addVertex(buffer, maxX, maxY, maxZ, color);
-        addVertex(buffer, maxX, minY, maxZ, color);
+        addLine(buffer, maxX, minY, maxZ, maxX, minY, minZ, color);
+        addLine(buffer, maxX, minY, minZ, maxX, maxY, minZ, color);
+        addLine(buffer, maxX, maxY, minZ, maxX, maxY, maxZ, color);
+        addLine(buffer, maxX, maxY, maxZ, maxX, minY, maxZ, color);
 
         // North side (don't repeat the vertical lines that are done by the east/west sides)
-        addVertex(buffer, maxX, minY, minZ, color);
-        addVertex(buffer, minX, minY, minZ, color);
-
-        addVertex(buffer, minX, maxY, minZ, color);
-        addVertex(buffer, maxX, maxY, minZ, color);
+        addLine(buffer, maxX, minY, minZ, minX, minY, minZ, color);
+        addLine(buffer, minX, maxY, minZ, maxX, maxY, minZ, color);
 
         // South side (don't repeat the vertical lines that are done by the east/west sides)
-        addVertex(buffer, minX, minY, maxZ, color);
-        addVertex(buffer, maxX, minY, maxZ, color);
-
-        addVertex(buffer, maxX, maxY, maxZ, color);
-        addVertex(buffer, minX, maxY, maxZ, color);
+        addLine(buffer, minX, minY, maxZ, maxX, minY, maxZ, color);
+        addLine(buffer, maxX, maxY, maxZ, minX, maxY, maxZ, color);
     }
     //END TEMP MALILIB
 
     public static void drawFullBlockOutlinesBatched(float x, float y, float z, Color4f color, BufferBuilder buffer)
     {
-        addVertex(buffer, x, y, z, color);
-        addVertex(buffer, x + 1F, y, z, color);
+        // Bottom face
+        addLine(buffer, x, y, z, x + 1F, y, z, color);
+        addLine(buffer, x, y, z, x, y, z + 1F, color);
+        addLine(buffer, x, y, z + 1F, x + 1F, y, z + 1F, color);
+        addLine(buffer, x + 1F, y, z, x + 1F, y, z + 1F, color);
 
-        addVertex(buffer, x, y, z, color);
-        addVertex(buffer, x, y, z + 1F, color);
+        // Top face
+        addLine(buffer, x, y + 1F, z, x + 1F, y + 1F, z, color);
+        addLine(buffer, x, y + 1F, z, x, y + 1F, z + 1F, color);
+        addLine(buffer, x, y + 1F, z + 1F, x + 1F, y + 1F, z + 1F, color);
+        addLine(buffer, x + 1F, y + 1F, z, x + 1F, y + 1F, z + 1F, color);
 
-        addVertex(buffer, x, y, z + 1F, color);
-        addVertex(buffer, x + 1F, y, z + 1F, color);
-
-        addVertex(buffer, x + 1F, y, z, color);
-        addVertex(buffer, x + 1F, y, z + 1F, color);
-
-        addVertex(buffer, x, y + 1F, z, color);
-        addVertex(buffer, x + 1F, y + 1F, z, color);
-
-        addVertex(buffer, x, y + 1F, z, color);
-        addVertex(buffer, x, y + 1F, z + 1F, color);
-
-        addVertex(buffer, x, y + 1F, z + 1F, color);
-        addVertex(buffer, x + 1F, y + 1F, z + 1F, color);
-
-        addVertex(buffer, x + 1F, y + 1F, z, color);
-        addVertex(buffer, x + 1F, y + 1F, z + 1F, color);
-
-        addVertex(buffer, x, y, z, color);
-        addVertex(buffer, x, y + 1F, z, color);
-
-        addVertex(buffer, x + 1F, y, z, color);
-        addVertex(buffer, x + 1F, y + 1F, z, color);
-
-        addVertex(buffer, x, y, z + 1F, color);
-        addVertex(buffer, x, y + 1F, z + 1F, color);
-
-        addVertex(buffer, x + 1F, y, z + 1F, color);
-        addVertex(buffer, x + 1F, y + 1, z + 1F, color);
+        // Vertical edges
+        addLine(buffer, x, y, z, x, y + 1F, z, color);
+        addLine(buffer, x + 1F, y, z, x + 1F, y + 1F, z, color);
+        addLine(buffer, x, y, z + 1F, x, y + 1F, z + 1F, color);
+        addLine(buffer, x + 1F, y, z + 1F, x + 1F, y + 1F, z + 1F, color);
     }
 
     public static void drawSpecialOutlinesBatched(float x, float y, float z, Color4f color, BufferBuilder buffer, boolean sign)
@@ -168,139 +138,71 @@ public class RenderUtils
             heightY = heightY - 0.3F;
         }
 
-        addVertex(buffer, posX, posY, posZ, color);
-        addVertex(buffer, posX + widthX, posY, posZ, color);
+        // Front face
+        addLine(buffer, posX, posY, posZ, posX + widthX, posY, posZ, color);
+        addLine(buffer, posX, posY + heightY, posZ, posX + widthX, posY + heightY, posZ, color);
+        addLine(buffer, posX, posY, posZ, posX, posY + heightY, posZ, color);
+        addLine(buffer, posX + widthX, posY, posZ, posX + widthX, posY + heightY, posZ, color);
 
-        addVertex(buffer, posX, posY + heightY, posZ, color);
-        addVertex(buffer, posX + widthX, posY + heightY, posZ, color);
+        // Back face
+        addLine(buffer, posX, posY, posZ + widthZ, posX + widthX, posY, posZ + widthZ, color);
+        addLine(buffer, posX, posY + heightY, posZ + widthZ, posX + widthX, posY + heightY, posZ + widthZ, color);
+        addLine(buffer, posX, posY, posZ + widthZ, posX, posY + heightY, posZ + widthZ, color);
+        addLine(buffer, posX + widthX, posY, posZ + widthZ, posX + widthX, posY + heightY, posZ + widthZ, color);
 
-        addVertex(buffer, posX, posY, posZ, color);
-        addVertex(buffer, posX, posY + heightY, posZ, color);
-
-        addVertex(buffer, posX + widthX, posY, posZ, color);
-        addVertex(buffer, posX + widthX, posY + heightY, posZ, color);
-
-        addVertex(buffer, posX, posY, posZ + widthZ, color);
-        addVertex(buffer, posX + widthX, posY, posZ + widthZ, color);
-
-        addVertex(buffer, posX, posY + heightY, posZ + widthZ, color);
-        addVertex(buffer, posX + widthX, posY + heightY, posZ + widthZ, color);
-
-        addVertex(buffer, posX, posY, posZ + widthZ, color);
-        addVertex(buffer, posX, posY + heightY, posZ + widthZ, color);
-
-        addVertex(buffer, posX + widthX, posY, posZ + widthZ, color);
-        addVertex(buffer, posX + widthX, posY + heightY, posZ + widthZ, color);
-
-        addVertex(buffer, posX + widthX, posY, posZ, color);
-        addVertex(buffer, posX + widthX, posY, posZ + widthZ, color);
-
-        addVertex(buffer, posX, posY, posZ, color);
-        addVertex(buffer, posX, posY, posZ + widthZ, color);
-
-        addVertex(buffer, posX + widthX, posY + heightY, posZ, color);
-        addVertex(buffer, posX + widthX, posY + heightY, posZ + widthZ, color);
-
-        addVertex(buffer, posX, posY + heightY, posZ, color);
-        addVertex(buffer, posX, posY + heightY, posZ + widthZ, color);
+        // Connecting edges
+        addLine(buffer, posX + widthX, posY, posZ, posX + widthX, posY, posZ + widthZ, color);
+        addLine(buffer, posX, posY, posZ, posX, posY, posZ + widthZ, color);
+        addLine(buffer, posX + widthX, posY + heightY, posZ, posX + widthX, posY + heightY, posZ + widthZ, color);
+        addLine(buffer, posX, posY + heightY, posZ, posX, posY + heightY, posZ + widthZ, color);
     }
 
     public static void drawBedOutlineBatched(float x, float y, float z, Color4f color, BufferBuilder buffer)
     {
-        float shortLength = 0.19f;
-        float reverseShortLength = 0.81f;
-        float otherSide = 1f;
-        float longHeight = 0.56f;
+        float s = 0.19f;
+        float rs = 0.81f;
+        float o = 1f;
+        float h = 0.56f;
 
-        //left front leg
-        addVertex(buffer, x, y, z, color);
-        addVertex(buffer, x + shortLength, y, z, color);
+        // Left front leg
+        addLine(buffer, x, y, z, x + s, y, z, color);
+        addLine(buffer, x, y, z, x, y, z + s, color);
+        addLine(buffer, x, y, z, x, y + h, z, color);
+        addLine(buffer, x + s, y, z, x + s, y + s, z, color);
+        addLine(buffer, x, y, z + s, x, y + s, z + s, color);
 
-        addVertex(buffer, x, y, z, color);
-        addVertex(buffer, x, y, z + shortLength, color);
+        // Right front leg
+        addLine(buffer, x + rs, y, z, x + o, y, z, color);
+        addLine(buffer, x + o, y, z, x + o, y, z + s, color);
+        addLine(buffer, x + o, y, z, x + o, y + h, z, color);
+        addLine(buffer, x + rs, y, z, x + rs, y + s, z, color);
+        addLine(buffer, x + o, y, z + s, x + o, y + s, z + s, color);
 
-        addVertex(buffer, x, y, z, color);
-        addVertex(buffer, x, y + longHeight, z, color);
+        // Left back leg
+        addLine(buffer, x, y, z + o, x + s, y, z + o, color);
+        addLine(buffer, x, y, z + o, x, y, z + rs, color);
+        addLine(buffer, x, y, z + o, x, y + h, z + o, color);
+        addLine(buffer, x + s, y, z + o, x + s, y + s, z + o, color);
+        addLine(buffer, x, y, z + rs, x, y + s, z + rs, color);
 
-        addVertex(buffer, x + shortLength, y, z, color);
-        addVertex(buffer, x + shortLength, y + shortLength, z, color);
+        // Right back leg
+        addLine(buffer, x + rs, y, z + o, x + o, y, z + o, color);
+        addLine(buffer, x + o, y, z + rs, x + o, y, z + o, color);
+        addLine(buffer, x + o, y, z + o, x + o, y + h, z + o, color);
+        addLine(buffer, x + rs, y, z + o, x + rs, y + s, z + o, color);
+        addLine(buffer, x + o, y, z + rs, x + o, y + s, z + rs, color);
 
-        addVertex(buffer, x, y, z + shortLength, color);
-        addVertex(buffer, x, y + shortLength, z + shortLength, color);
+        // Middle connections
+        addLine(buffer, x + s, y + s, z, x + rs, y + s, z, color);
+        addLine(buffer, x, y + s, z + s, x, y + s, z + rs, color);
+        addLine(buffer, x + s, y + s, z + o, x + rs, y + s, z + o, color);
+        addLine(buffer, x + o, y + s, z + s, x + o, y + s, z + rs, color);
 
-        //right front leg
-        addVertex(buffer, x + reverseShortLength, y, z, color);
-        addVertex(buffer, x + otherSide, y, z, color);
-
-        addVertex(buffer, x + otherSide, y, z, color);
-        addVertex(buffer, x + otherSide, y, z + shortLength, color);
-
-        addVertex(buffer, x + otherSide, y, z, color);
-        addVertex(buffer, x + otherSide, y + longHeight, z, color);
-
-        addVertex(buffer, x + reverseShortLength, y, z, color);
-        addVertex(buffer, x + reverseShortLength, y + shortLength, z, color);
-
-        addVertex(buffer, x + otherSide, y, z + shortLength, color);
-        addVertex(buffer, x + otherSide, y + shortLength, z + shortLength, color);
-
-        //left back leg
-        addVertex(buffer, x, y, z + otherSide, color);
-        addVertex(buffer, x + shortLength, y, z + otherSide, color);
-
-        addVertex(buffer, x, y, z + otherSide, color);
-        addVertex(buffer, x, y, z + reverseShortLength, color);
-
-        addVertex(buffer, x, y, z + otherSide, color);
-        addVertex(buffer, x, y + longHeight, z + otherSide, color);
-
-        addVertex(buffer, x + shortLength, y, z + 1, color);
-        addVertex(buffer, x + shortLength, y + shortLength, z + 1, color);
-
-        addVertex(buffer, x, y, z + reverseShortLength, color);
-        addVertex(buffer, x, y + shortLength, z + reverseShortLength, color);
-
-        //right back leg
-        addVertex(buffer, x + reverseShortLength, y, z + otherSide, color);
-        addVertex(buffer, x + otherSide, y, z + otherSide, color);
-
-        addVertex(buffer, x + otherSide, y, z + reverseShortLength, color);
-        addVertex(buffer, x + otherSide, y, z + otherSide, color);
-
-        addVertex(buffer, x + otherSide, y, z + otherSide, color);
-        addVertex(buffer, x + otherSide, y + longHeight, z + otherSide, color);
-
-        addVertex(buffer, x + reverseShortLength, y, z + otherSide, color);
-        addVertex(buffer, x + reverseShortLength, y + shortLength, z + otherSide, color);
-
-        addVertex(buffer, x + otherSide, y, z + reverseShortLength, color);
-        addVertex(buffer, x + otherSide, y + shortLength, z + reverseShortLength, color);
-
-        //middle connections
-        addVertex(buffer, x + shortLength, y + shortLength, z, color);
-        addVertex(buffer, x + reverseShortLength, y + shortLength, z, color);
-
-        addVertex(buffer, x, y + shortLength, z + shortLength, color);
-        addVertex(buffer, x, y + shortLength, z + reverseShortLength, color);
-
-        addVertex(buffer, x + shortLength, y + shortLength, z + otherSide, color);
-        addVertex(buffer, x + reverseShortLength, y + shortLength, z + otherSide, color);
-
-        addVertex(buffer, x + otherSide, y + shortLength, z + shortLength, color);
-        addVertex(buffer, x + otherSide, y + shortLength, z + reverseShortLength, color);
-
-        //top connections
-        addVertex(buffer, x, y + longHeight, z, color);
-        addVertex(buffer, x + otherSide, y + longHeight, z, color);
-
-        addVertex(buffer, x, y + longHeight, z, color);
-        addVertex(buffer, x, y + longHeight, z + otherSide, color);
-
-        addVertex(buffer, x, y + longHeight, z + otherSide, color);
-        addVertex(buffer, x + otherSide, y + longHeight, z + otherSide, color);
-
-        addVertex(buffer, x + otherSide, y + longHeight, z, color);
-        addVertex(buffer, x + otherSide, y + longHeight, z + otherSide, color);
+        // Top connections
+        addLine(buffer, x, y + h, z, x + o, y + h, z, color);
+        addLine(buffer, x, y + h, z, x, y + h, z + o, color);
+        addLine(buffer, x, y + h, z + o, x + o, y + h, z + o, color);
+        addLine(buffer, x + o, y + h, z, x + o, y + h, z + o, color);
     }
 
     /**

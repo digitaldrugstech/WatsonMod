@@ -214,7 +214,7 @@ public class CoreProtectAnalysis extends Analysis
         _block = WatsonBlockRegistery.getInstance().getWatsonBlockByName(block);
         if (DataManager.getFilters().isAcceptedPlayer(_player))
         {
-            Color4f color = _block.getOverrideColor() != Color4f.ZERO && _block.getOverrideColor() != null ? _block.getOverrideColor() : _block.getColor();
+            Color4f color = _block.getEffectiveColor();
             Analysis.colorBlock = color != null ? color.intValue : 0;
             BlockEdit edit = new BlockEdit(_millis, _player, _action, _x, _y, _z, _block, _world, 1);
             SyncTaskQueue.getInstance().addTask(new AddBlockEditTask(edit, _firstInspectorResult));

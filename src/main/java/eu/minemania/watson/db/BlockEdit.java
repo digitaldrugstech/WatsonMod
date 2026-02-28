@@ -176,8 +176,4 @@ public class BlockEdit
         return this.action.equals("removed") || this.action.equals("took") || this.action.equals("remove") || this.action.equals("item-remove");
     }
 
-    private boolean isOreBlock(Block block)
-    {
-        return block instanceof ExperienceDroppingBlock || block instanceof RedstoneOreBlock || block instanceof AmethystBlock || block.equals(Blocks.ANCIENT_DEBRIS) || block.equals(Blocks.GILDED_BLACKSTONE);
-    }
 }

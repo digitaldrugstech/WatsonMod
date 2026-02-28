@@ -139,20 +139,16 @@ public class EditSelection
             float x = _selection.x + 0.5f;
             float y = _selection.y + 0.5f;
             float z = _selection.z + 0.5f;
-            RenderUtils.addVertex(buffer, x - halfSize, y, z, selColor);
-            RenderUtils.addVertex(buffer, x + halfSize, y, z, selColor);
-            RenderUtils.addVertex(buffer, x, y - halfSize, z, selColor);
-            RenderUtils.addVertex(buffer, x, y + halfSize, z, selColor);
-            RenderUtils.addVertex(buffer, x, y, z - halfSize, selColor);
-            RenderUtils.addVertex(buffer, x, y, z + halfSize, selColor);
+            RenderUtils.addLine(buffer, x - halfSize, y, z, x + halfSize, y, z, selColor);
+            RenderUtils.addLine(buffer, x, y - halfSize, z, x, y + halfSize, z, selColor);
+            RenderUtils.addLine(buffer, x, y, z - halfSize, x, y, z + halfSize, selColor);
 
             if (_selection.playereditSet != null)
             {
                 BlockEdit previous = _selection.playereditSet.getEditBefore(_selection);
                 if (previous != null)
                 {
-                    RenderUtils.addVertex(buffer, previous.x + 0.5f, previous.y + 0.5f, previous.z + 0.5f, selColor);
-                    RenderUtils.addVertex(buffer, x, y, z, selColor);
+                    RenderUtils.addLine(buffer, previous.x + 0.5f, previous.y + 0.5f, previous.z + 0.5f, x, y, z, selColor);
                 }
             }
             RenderUtils.submitBuffer(buffer);
@@ -241,7 +237,9 @@ public class EditSelection
             return;
         }
 
-        for (PlayereditSet playereditSet : DataManager.getEditSelection().getBlockEditSet().getPlayereditSet().values())
+        BlockEditSet editSet = DataManager.getEditSelection().getBlockEditSet();
+        if (editSet == null) return;
+        for (PlayereditSet playereditSet : editSet.getPlayereditSet().values())
         {
             for (BlockEdit edit : playereditSet.getBlockEdits())
             {
